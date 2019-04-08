@@ -28,24 +28,31 @@ class Percepton:
     def outputDelta(self, d):
         # deltai = (di - yi) * (yi * (1 - yi))
         self.delta = (d - self.outputs) * (self.outputs * (1 - self.outputs))
+        print('delta', self.delta)
         return (d - self.outputs) @ (d - self.outputs) / len(self.outputs)
 
     def learn(self, xInputs):
-        for i in range(len(self.delta)):
-            self.dws[i] += self.delta[i] * xInputs
-            self.dths += -self.delta[i]
+        # for i in range(len(self.delta)):
+            self.dws += self.delta * xInputs
+            self.dths += -self.delta
 
     def backPropagate(self, prevLayer):
-        prevLayer.delta = (np.transpose(self.w) @ self.delta) * (self.outputs * (1 - self.outputs))
+        print('out', np.transpose(self.w) @ self.delta)
+        prevLayer.delta = (np.transpose(self.w) @ self.delta) * (prevLayer.outputs * (1 - prevLayer.outputs))
 
     def epochStart(self):
         self.dws = np.zeros((self.num_outputs, self.num_inputs))
         self.dths = np.zeros(self.num_outputs)
         self.outputs = np.zeros(self.num_outputs)
 
-    def epochFinish(self):  # TODO how finish epoch??
-        self.w -= self.dws  # is - correct?
-        self.th += self.dths  # is + correct?
+    def epochFinish(self, eta, alpha):
+        self.dws = eta * self.dws + alpha * self.odw
+        self.w += self.dws
+        self.odw = self.w
+
+        self.dth = eta * self.dth + alpha * self.oth
+        self.th += self.dth
+        self.oth = self.th
 
     def recall(self, inputs_array):
         self.outputs = self.activation_function(self.w @ inputs_array - self.th)
@@ -82,45 +89,8 @@ def decision_boudary(w, th):
 
 class Net:
     def __init__(self):
-        # self.h = Percepton(2, 2, sigmoida)
-        # self.o = Percepton(1, 2, sigmoida)
-        # self.h.w[0][0] = 8
-        # self.h.w[0][1] = -8
-        # self.h.w[1][0] = 8
-        # self.h.w[1][1] = -8
-        # self.h.th[0] = -4
-        # self.h.th[1] = 4
-        # self.o.w[0][0] = 8
-        # self.o.w[0][1] = -8
-        # self.o.th[0] = 8
-
         self.layers = []
         self.output = []
-
-    # def test(self):
-    #     size = 101
-    #     z = np.zeros((size, size))
-    #
-    #     for ax in range(size):
-    #         for ay in range(size):
-    #             z[ax, ay] = self.o.recall(self.h.recall(np.array([ax / (size - 1), ay / (size - 1)])))[0] * 255
-    #
-    #     lines = net.get_decision_boudaries()
-    #
-    #     # Subpolots images
-    #     fig, ax = plt.subplots()
-    #     img = ax.imshow(z, interpolation="bilinear", cmap="gray", origin="lower", extent=[0, 1, 0, 1], vmax=1, vmin=0)
-    #     for x in range(len(lines)):
-    #         ax.plot(lines[x][0], lines[x][1])
-    #     plt.xlabel("x1")
-    #     plt.ylabel("x2")
-    #     plt.show()
-
-    def get_decision_boudaries(self):
-        result = []
-        for x in range(len(self.h.th)):
-            result.append(decision_boudary(self.h.w[x], self.h.th[x]))
-        return result
 
     def recall(self, x):
         self.layers[0].recall(x)
@@ -139,15 +109,16 @@ class Net:
         for l in self.layers:
             l.epochStart()
 
-    def epochFinish(self):
+    def epochFinish(self, eta, alpha):
         for l in self.layers:
-            l.epochFinish()
+            l.epochFinish(eta, alpha)
 
     def learn(self, x, d):
         self.recall(x)
         e = self.layers[1].outputDelta(d)
+        print('mse', e)
+        self.layers[1].learn(self.layers[0].outputs)
         self.layers[1].backPropagate(self.layers[0])
-        self.layers[1].learn(x)
         self.layers[0].learn(x)
         return e
 
@@ -163,7 +134,8 @@ if __name__ == "__main__":
         np.array([np.array([1, 1]), np.array([0])]),
     ])
     print("Before learn:", net.recall(trainSet[0][0]))
-
+    eta = .8
+    alpha = .5
     avgErr = 0
     for i in range(100):
         print("Epoch:", i + 1)
@@ -172,7 +144,7 @@ if __name__ == "__main__":
         for pat in trainSet:
             print('pat', pat[0])
             avgErr += net.learn(pat[0], pat[1])
-        net.epochFinish()
+        net.epochFinish(eta, alpha)
         print("Error:", avgErr / len(trainSet))
         print("======")
 
