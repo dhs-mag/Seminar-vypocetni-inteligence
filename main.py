@@ -11,6 +11,9 @@ random.seed(351)
 def sigmoida(phi):
     return 1.0 / (1.0 + np.exp(-phi))
 
+speed = 0.8 #rychlost učení
+inertia = 0.5 #setrvačnost
+
 class Percepton:
     def __init__(self, num_outputs, num_inputs, activation):
         self.num_inputs = num_inputs
@@ -19,26 +22,31 @@ class Percepton:
         self.th = np.zeros(num_outputs)
         self.activation_function = activation
         self.delta = np.zeros(num_outputs)
-        self.dw = np.zeros((num_outputs, num_inputs))
         self.dws = np.zeros((num_outputs, num_inputs))
         self.odw = np.zeros((num_outputs, num_inputs))
-        self.dth = np.zeros(num_outputs)
         self.dths = np.zeros(num_outputs)
-        self.oth = np.zeros(num_outputs)
+        self.odth = np.zeros(num_outputs)
         self.outputs = np.zeros(num_outputs) #Y - outputs from Perceptron
 
     def outputDelta(self, d):
         # deltai = (di - yi) * (yi * (1 - yi))
-        self.delta = (d - self.outputs) * (self.outputs * (1 - self.outputs))
-        return (d - self.outputs) @ (d - self.outputs) / len(self.outputs)
+        diff = d - self.outputs
+        self.delta = diff * (self.outputs * (1 - self.outputs))
+        return diff @ diff / len(self.outputs)
 
     def learn(self, xInputs):
-        for i in range(len(self.delta)):
-            self.dws[i] += self.delta[i] * xInputs
-            self.dths += -self.delta[i]
+        self.dws += self.delta * xInputs
+        self.dths += -self.delta
+
+        if True:
+            print("Inputs", xInputs)
+            print("DWS", self.dws)
+            print("DTHS", self.dths)
+            print("--------------")
+
 
     def backPropagate(self, prevLayer):
-        prevLayer.delta = (np.transpose(self.w) @ self.delta) * (self.outputs * (1 - self.outputs))
+        prevLayer.delta = (np.transpose(self.w) @ self.delta) * (prevLayer.outputs * (1 - prevLayer.outputs))
 
 
     def epochStart(self):
@@ -46,9 +54,18 @@ class Percepton:
         self.dths = np.zeros(self.num_outputs)
         self.outputs = np.zeros(self.num_outputs)
 
-    def epochFinish(self): #TODO how finish epoch??
-        self.w -= self.dws #is - correct?
-        self.th += self.dths #is + correct?
+    def epochFinish(self):
+        self.dws = speed * self.dws + inertia * self.odw
+        self.dths = speed * self.dths + inertia * self.odth
+
+        self.w += self.dws
+        self.th += self.dths
+        print("W", self.w)
+        print("TH", self.th)
+        print("---------------------")
+        self.odw = self.dws
+        self.othw = self.dths
+
 
     def recall(self, inputs_array):
         self.outputs = self.activation_function(self.w @ inputs_array - self.th)
@@ -154,8 +171,9 @@ class Net:
         self.recall(x)
         e = self.layers[1].outputDelta(d)
         self.layers[1].backPropagate(self.layers[0])
-        self.layers[1].learn(x)
         self.layers[0].learn(x)
+        self.layers[1].learn(self.layers[0].outputs)
+        
         return e
     
     
@@ -174,14 +192,14 @@ if __name__ == "__main__":
     print("Before learn:", net.recall(trainSet[0][0]))
 
     avgErr = 0
-    for i in range(100):
-        print("Epoch:", i+1)
+    for i in range(2):
+        print("EPOCH:", i+1)
         avgErr = 0
         net.epochStart()
         for pat in trainSet:
             avgErr += net.learn(pat[0], pat[1])
         net.epochFinish()
         print("Error:", avgErr/len(trainSet))
-        print("======")
+        print("========================")
 
     print("After learn:", net.recall(trainSet[0][0]))
