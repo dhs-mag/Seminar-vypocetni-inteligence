@@ -1,8 +1,5 @@
-import numpy as np
-from PIL import Image, ImageDraw
 
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 import numpy as np
 import random as random
 
