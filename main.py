@@ -47,8 +47,8 @@ class Percepton:
 
     def learn(self, xInputs):
         # for i in range(len(self.delta)):
-            self.dws += self.delta * xInputs
-            self.dths -= self.delta
+        self.dws += self.delta * xInputs
+        self.dths -= self.delta
 
     def back_propagate(self, prevLayer):
         # print('out', np.transpose(self.w) @ self.delta)
@@ -121,15 +121,15 @@ class Net:
         self.output = self.layers[1]
         self.layers[0].w[0][0] = -  0.214767760000000
         self.layers[0].w[0][1] = -  0.045404790000000
-        self.layers[0].w[1][0] =    0.106739550000000
-        self.layers[0].w[1][1] =    0.136999780000000
-        self.layers[0].th[0]   = -  0.299236760000000
-        self.layers[0].th[1]   =    0.122603690000000
-        self.layers[1].w[0][0] =    0.025870070000000
-        self.layers[1].w[0][1] =    0.168638190000000
-        self.layers[1].th[0]   =    0.019322390000000
+        self.layers[0].w[1][0] = 0.106739550000000
+        self.layers[0].w[1][1] = 0.136999780000000
+        self.layers[0].th[0] = -  0.299236760000000
+        self.layers[0].th[1] = 0.122603690000000
+        self.layers[1].w[0][0] = 0.025870070000000
+        self.layers[1].w[0][1] = 0.168638190000000
+        self.layers[1].th[0] = 0.019322390000000
         # for l in self.layers:
-            # l.init(randon_range_min, randon_range_max)
+        # l.init(randon_range_min, randon_range_max)
 
     def epoch_start(self):
         for l in self.layers:
@@ -137,14 +137,14 @@ class Net:
 
     def epoch_finish(self, eta, alpha):
         for l in self.layers:
-            l.epochFinish(eta, alpha)
+            l.epoch_finish(eta, alpha)
 
     def learn(self, x, d):
         self.recall(x)
-        e = self.layers[1].outputDelta(d)
+        e = self.layers[1].output_delta(d)
         # print('mse', e)
         self.layers[1].learn(self.layers[0].outputs)
-        self.layers[1].backPropagate(self.layers[0])
+        self.layers[1].back_propagate(self.layers[0])
         self.layers[0].learn(x)
         return e
 
@@ -180,6 +180,7 @@ class Net:
         print("%1.15f" % self.layers[0].odw[1][0], " ; hidden: old delta w[1][0]")
         print("%1.15f" % self.layers[0].odw[1][1], " ; hidden: old delta w[1][1]")
 
+
 if __name__ == "__main__":
     net = Net()
     net.net_init(-0.3, 0.3)
@@ -200,7 +201,7 @@ if __name__ == "__main__":
         net.epoch_start()
         j = 0
         for pat in trainSet:
-            print('iterace ', j+1)
+            print('iterace ', j + 1)
             avgErr += net.learn(pat[0], pat[1])
             net.print_net()
         net.epoch_finish(eta, alpha)
