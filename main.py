@@ -151,7 +151,6 @@ class Net:
         self.layers = []
         self.layers.append(Percepton(2, 2, sigmoida))
         self.layers.append(Percepton(1, 2, sigmoida))
-        self.output = self.layers[1]
 
         for l in self.layers:
             l.init(randon_range_min, randon_range_max)
