@@ -1,3 +1,5 @@
+import locale
+
 import numpy as np
 from PIL import Image, ImageDraw
 
@@ -8,7 +10,7 @@ import random as random
 random.seed(351)
 
 def sigmoida(phi):
-    return 1.0 / (1.0 + np.exp(-phi))
+    return np.round(1.0 / (1.0 + np.exp(-phi)), 15)
 
 speed = 0.8 #rychlost učení
 inertia = 0.5 #setrvačnost
@@ -34,7 +36,10 @@ class Percepton:
         return diff @ diff / len(self.outputs)
 
     def learn(self, xInputs):
-        self.dws += self.delta * xInputs
+        # self.dws += self.delta * xInputs
+        for i in range(len(self.dws)):
+            self.dws[i] += self.delta[i] * xInputs
+
         self.dths += -self.delta
 
     def backPropagate(self, prevLayer):
@@ -56,7 +61,6 @@ class Percepton:
         self.othw = dths_temp
 
     def recall(self, inputs_array):
-        print("Recall", self.w @ inputs_array - self.th)
         self.outputs = self.activation_function(self.w @ inputs_array - self.th)
         return self.outputs
 
@@ -134,36 +138,36 @@ class Net:
         return e
 
     def print_net(self):
-        print("%1.15f" % self.layers[1].outputs[0], " ; output: y")
-        print("%1.15f" % self.layers[1].th[0], " ; output: threshold")
-        print("%1.15f" % self.layers[1].w[0][0], " ; output: w[0]")
-        print("%1.15f" % self.layers[1].w[0][1], " ; output: w[1]")
-        print("%1.15f" % self.layers[1].delta[0], " ; output: delta")
-        print("%1.15f" % self.layers[1].dths[0], " ; output: delta threshold")
-        print("%1.15f" % self.layers[1].dws[0][0], " ; output: delta w[0]")
-        print("%1.15f" % self.layers[1].dws[0][1], " ; output: delta w[1]")
-        print("%1.15f" % self.layers[0].outputs[0], " ; hidden: y[0]")
-        print("%1.15f" % self.layers[0].outputs[1], " ; hidden: y[1]")
-        print("%1.15f" % self.layers[0].th[0], " ; hidden: threshold [0]")
-        print("%1.15f" % self.layers[0].th[1], " ; hidden: threshold [1]")
-        print("%1.15f" % self.layers[0].w[0][0], " ; hidden: w[0][0]")
-        print("%1.15f" % self.layers[0].w[0][1], " ; hidden: w[0][1]")
-        print("%1.15f" % self.layers[0].w[1][0], " ; hidden: w[1][0]")
-        print("%1.15f" % self.layers[0].w[1][1], " ; hidden: w[1][1]")
-        print("%1.15f" % self.layers[0].delta[0], " ; hidden: delta [0]")
-        print("%1.15f" % self.layers[0].delta[1], " ; hidden: delta [1]")
-        print("%1.15f" % self.layers[0].dths[0], " ; hidden: delta threshold [0]")
-        print("%1.15f" % self.layers[0].dths[1], " ; hidden: delta threshold [1]")
-        print("%1.15f" % self.layers[0].dws[0][0], " ; hidden: delta w[0][0]")
-        print("%1.15f" % self.layers[0].dws[0][1], " ; hidden: delta w[0][1]")
-        print("%1.15f" % self.layers[0].dws[1][0], " ; hidden: delta w[1][0]")
-        print("%1.15f" % self.layers[0].dws[1][1], " ; hidden: delta w[1][1]")
-        print("%1.15f" % self.layers[0].oth[0], " ; hidden: old delta threshold [0]")
-        print("%1.15f" % self.layers[0].oth[1], " ; hidden: old delta threshold [1]")
-        print("%1.15f" % self.layers[0].odw[0][0], " ; hidden: old delta w[0][0]")
-        print("%1.15f" % self.layers[0].odw[0][1], " ; hidden: old delta w[0][1]")
-        print("%1.15f" % self.layers[0].odw[1][0], " ; hidden: old delta w[1][0]")
-        print("%1.15f" % self.layers[0].odw[1][1], " ; hidden: old delta w[1][1]")
+        print("%1.15f" % self.layers[1].outputs[0] + ";output:y")
+        print("%1.15f" % self.layers[1].th[0] + ";output:threshold")
+        print("%1.15f" % self.layers[1].w[0][0] + ";output:w[0]")
+        print("%1.15f" % self.layers[1].w[0][1] + ";output:w[1]")
+        print("%1.15f" % self.layers[1].delta[0] + ";output:delta")
+        print("%1.15f" % self.layers[1].dths[0] + ";output:deltathreshold")
+        print("%1.15f" % self.layers[1].dws[0][0] + ";output:deltaw[0]")
+        print("%1.15f" % self.layers[1].dws[0][1] + ";output:deltaw[1]")
+        print("%1.15f" % self.layers[0].outputs[0] + ";hidden:y[0]")
+        print("%1.15f" % self.layers[0].outputs[1] + ";hidden:y[1]")
+        print("%1.15f" % self.layers[0].th[0] + ";hidden:threshold[0]")
+        print("%1.15f" % self.layers[0].th[1] + ";hidden:threshold[1]")
+        print("%1.15f" % self.layers[0].w[0][0] + ";hidden:w[0][0]")
+        print("%1.15f" % self.layers[0].w[0][1] + ";hidden:w[0][1]")
+        print("%1.15f" % self.layers[0].w[1][0] + ";hidden:w[1][0]")
+        print("%1.15f" % self.layers[0].w[1][1] + ";hidden:w[1][1]")
+        print("%1.15f" % self.layers[0].delta[0] + ";hidden:delta[0]")
+        print("%1.15f" % self.layers[0].delta[1] + ";hidden:delta[1]")
+        print("%1.15f" % self.layers[0].dths[0] + ";hidden:deltathreshold[0]")
+        print("%1.15f" % self.layers[0].dths[1] + ";hidden:deltathreshold[1]")
+        print("%1.15f" % self.layers[0].dws[0][0] + ";hidden:deltaw[0][0]")
+        print("%1.15f" % self.layers[0].dws[0][1] + ";hidden:deltaw[0][1]")
+        print("%1.15f" % self.layers[0].dws[1][0] + ";hidden:deltaw[1][0]")
+        print("%1.15f" % self.layers[0].dws[1][1] + ";hidden:deltaw[1][1]")
+        # print("%1.15f" % self.layers[0].oth[0] + ";hidden:old delta threshold [0]")
+        # print("%1.15f" % self.layers[0].oth[1] + ";hidden:old delta threshold [1]")
+        print("%1.15f" % self.layers[0].odw[0][0] + ";hidden:olddeltaw[0][0]")
+        print("%1.15f" % self.layers[0].odw[0][1] + ";hidden:olddeltaw[0][1]")
+        print("%1.15f" % self.layers[0].odw[1][0] + ";hidden:olddeltaw[1][0]")
+        print("%1.15f" % self.layers[0].odw[1][1] + ";hidden:olddeltaw[1][1]")
 
 if __name__ == "__main__":
     net = Net()
@@ -178,15 +182,13 @@ if __name__ == "__main__":
     print("Before learn:", net.recall(trainSet[0][0]))
 
     avgErr = 0
-    for i in range(1):
+    for i in range(3):
         print("EPOCH:", i+1)
         avgErr = 0
         net.epochStart()
         for pat in trainSet:
             avgErr += net.learn(pat[0], pat[1])
-            if i == 1:
-                print("New it")
-                net.print_net()
+            print("hehehhehehe")
         net.epochFinish()
         net.print_net()
         print("Error:", avgErr/len(trainSet))
