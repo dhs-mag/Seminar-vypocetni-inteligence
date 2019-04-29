@@ -47,16 +47,16 @@ class Percepton:
         self.outputs = np.zeros(self.num_outputs)
 
     def epochFinish(self):
-        self.dws = speed * self.dws + inertia * self.odw
-        self.dths = speed * self.dths + inertia * self.odth
+        dws_temp = speed * self.dws + inertia * self.odw
+        self.w += dws_temp
+        self.odw = dws_temp
 
-        self.w += self.dws
-        self.th += self.dths
-        self.odw = self.dws
-        self.othw = self.dths
-
+        dths_temp = speed * self.dths + inertia * self.odth
+        self.th += dths_temp
+        self.othw = dths_temp
 
     def recall(self, inputs_array):
+        print("Recall", self.w @ inputs_array - self.th)
         self.outputs = self.activation_function(self.w @ inputs_array - self.th)
         return self.outputs
 
@@ -104,17 +104,17 @@ class Net:
         self.layers.append(Percepton(2, 2, sigmoida))
         self.layers.append(Percepton(1, 2, sigmoida))
         self.output = self.layers[1]
-        # self.layers[0].w[0][0] = -  0.214767760000000
-        # self.layers[0].w[0][1] = -  0.045404790000000
-        # self.layers[0].w[1][0] =    0.106739550000000
-        # self.layers[0].w[1][1] =    0.136999780000000
-        # self.layers[0].th[0]   = -  0.299236760000000
-        # self.layers[0].th[1]   =    0.122603690000000
-        # self.layers[1].w[0][0] =    0.025870070000000
-        # self.layers[1].w[0][1] =    0.168638190000000
-        # self.layers[1].th[0]   =    0.019322390000000
         for l in self.layers:
             l.init(randon_range_min, randon_range_max)
+        self.layers[0].w[0][0] = -  0.214767760000000
+        self.layers[0].w[0][1] = -  0.045404790000000
+        self.layers[0].w[1][0] =    0.106739550000000
+        self.layers[0].w[1][1] =    0.136999780000000
+        self.layers[0].th[0]   = -  0.299236760000000
+        self.layers[0].th[1]   =    0.122603690000000
+        self.layers[1].w[0][0] =    0.025870070000000
+        self.layers[1].w[0][1] =    0.168638190000000
+        self.layers[1].th[0]   =    0.019322390000000
 
     def epochStart(self):
         for l in self.layers:
@@ -135,25 +135,25 @@ class Net:
 
     def print_net(self):
         print("%1.15f" % self.layers[1].outputs[0], " ; output: y")
-        print("%1.15f" % self.layers[1].th[0], " ; output: treshold")
+        print("%1.15f" % self.layers[1].th[0], " ; output: threshold")
         print("%1.15f" % self.layers[1].w[0][0], " ; output: w[0]")
         print("%1.15f" % self.layers[1].w[0][1], " ; output: w[1]")
         print("%1.15f" % self.layers[1].delta[0], " ; output: delta")
-        print("%1.15f" % self.layers[1].dths[0], " ; output: delta treshold")
+        print("%1.15f" % self.layers[1].dths[0], " ; output: delta threshold")
         print("%1.15f" % self.layers[1].dws[0][0], " ; output: delta w[0]")
         print("%1.15f" % self.layers[1].dws[0][1], " ; output: delta w[1]")
         print("%1.15f" % self.layers[0].outputs[0], " ; hidden: y[0]")
         print("%1.15f" % self.layers[0].outputs[1], " ; hidden: y[1]")
-        print("%1.15f" % self.layers[0].th[0], " ; hidden: treshold [0]")
-        print("%1.15f" % self.layers[0].th[1], " ; hidden: treshold [1]")
+        print("%1.15f" % self.layers[0].th[0], " ; hidden: threshold [0]")
+        print("%1.15f" % self.layers[0].th[1], " ; hidden: threshold [1]")
         print("%1.15f" % self.layers[0].w[0][0], " ; hidden: w[0][0]")
         print("%1.15f" % self.layers[0].w[0][1], " ; hidden: w[0][1]")
         print("%1.15f" % self.layers[0].w[1][0], " ; hidden: w[1][0]")
         print("%1.15f" % self.layers[0].w[1][1], " ; hidden: w[1][1]")
-        print("%1.15f" % self.layers[0].delta[0], " ; hidden: delta[0]")
-        print("%1.15f" % self.layers[0].delta[1], " ; hidden: delta[1]")
-        print("%1.15f" % self.layers[0].dths[0], " ; hidden: delta treshold [0]")
-        print("%1.15f" % self.layers[0].dths[1], " ; hidden: delta treshold [1]")
+        print("%1.15f" % self.layers[0].delta[0], " ; hidden: delta [0]")
+        print("%1.15f" % self.layers[0].delta[1], " ; hidden: delta [1]")
+        print("%1.15f" % self.layers[0].dths[0], " ; hidden: delta threshold [0]")
+        print("%1.15f" % self.layers[0].dths[1], " ; hidden: delta threshold [1]")
         print("%1.15f" % self.layers[0].dws[0][0], " ; hidden: delta w[0][0]")
         print("%1.15f" % self.layers[0].dws[0][1], " ; hidden: delta w[0][1]")
         print("%1.15f" % self.layers[0].dws[1][0], " ; hidden: delta w[1][0]")
@@ -178,13 +178,17 @@ if __name__ == "__main__":
     print("Before learn:", net.recall(trainSet[0][0]))
 
     avgErr = 0
-    for i in range(100):
+    for i in range(1):
         print("EPOCH:", i+1)
         avgErr = 0
         net.epochStart()
         for pat in trainSet:
             avgErr += net.learn(pat[0], pat[1])
+            if i == 1:
+                print("New it")
+                net.print_net()
         net.epochFinish()
+        net.print_net()
         print("Error:", avgErr/len(trainSet))
         print("========================")
 
