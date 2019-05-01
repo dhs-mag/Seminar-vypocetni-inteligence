@@ -58,7 +58,7 @@ class Percepton:
 
         dths_temp = speed * self.dths + inertia * self.odth
         self.th += dths_temp
-        self.othw = dths_temp
+        self.odth = dths_temp
 
     def recall(self, inputs_array):
         self.outputs = self.activation_function(self.w @ inputs_array - self.th)
@@ -182,16 +182,24 @@ if __name__ == "__main__":
     print("Before learn:", net.recall(trainSet[0][0]))
 
     avgErr = 0
-    for i in range(3):
+    err = 0
+    for i in range(10000):
         print("EPOCH:", i+1)
         avgErr = 0
         net.epochStart()
         for pat in trainSet:
             avgErr += net.learn(pat[0], pat[1])
-            print("hehehhehehe")
         net.epochFinish()
-        net.print_net()
-        print("Error:", avgErr/len(trainSet))
+        err = avgErr/len(trainSet)
+
+        if err < 0.05:
+            break
+        print("Error:", err)
         print("========================")
 
-    print("After learn:", net.recall(trainSet[0][0]))
+    net.print_net()
+
+    print("After learn 0,0:", net.recall(trainSet[0][0]))
+    print("After learn 1,0:", net.recall(trainSet[1][0]))
+    print("After learn 0,1:", net.recall(trainSet[2][0]))
+    print("After learn 1,1:", net.recall(trainSet[3][0]))
