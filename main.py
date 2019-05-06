@@ -32,9 +32,9 @@ class Percepton:
         self.delta = diff * (self.outputs * (1 - self.outputs))
         return diff @ diff / len(self.outputs)
 
-    def learn(self, xInputs):
-        for i in range(len(self.dws)):
-            self.dws[i] += self.delta[i] * xInputs
+    def learn(self, x):
+        for j in range(len(self.dws)):
+            self.dws[j] += self.delta[j] * x
 
     def back_propagate(self, prevLayer):
         prevLayer.delta = (np.transpose(self.w) @ self.delta) * (prevLayer.outputs * (1 - prevLayer.outputs))
@@ -57,15 +57,14 @@ class Percepton:
         self.outputs = self.activation_function(self.w @ inputs_array - self.th)
         return self.outputs
 
-    def init(self, randon_range_min, randon_range_max):
+    def init(self, random_range_min, random_range_max):
         for x in range(len(self.w)):
             for y in range(len(self.w[x])):
-                self.w[x][y] = random.uniform(randon_range_max, randon_range_min)
+                self.w[x][y] = random.uniform(random_range_max, random_range_min)
 
         for x in range(len(self.th)):
-            self.th[x] = random.uniform(randon_range_max, randon_range_min)
+            self.th[x] = random.uniform(random_range_max, random_range_min)
 
-    # nakresleni oddelovacu
     def decision_boundary(self, w, th):
         x0_0 = -th / -w[0]
         x0_1 = (w[1] - th) / -w[0]
@@ -95,6 +94,33 @@ class Net:
         self.layers = []
         self.output = []
 
+    # def test(self):
+    #     z = np.zeros((101, 101))
+    #     for ay in range(101):
+    #         for ax in range(100):
+    #             z[ay, ax] = self.oth.recall(self.th.recall(np.array([ay / 100, ax / 100])))
+    #
+    #         lines = net.get_decision_boundaries()
+    #
+    #         # Subplots images
+    #         fig, fg = plt.subplots()
+    #         im = fg.imshow(z, interpolation='bilinear', cmap='gray', origin='lower', extent=[0, 1, 0, 1],
+    #                        vmax=1,
+    #                        vmin=0)
+    #         for x in range(len(lines)):
+    #             fg.plot(lines[x][0], lines[x][1])
+    #
+    #         fig.colorbar(im)
+    #         plt.xlabel("x0")
+    #         plt.ylabel("x1")
+    #         plt.show()
+
+    # def get_decision_boundaries(self):
+    #     result = []
+    #     for x in range(len(self.h.th)):
+    #         result.append(self.decision_boundary(self.h.w[x], self.h.th[x]))
+    #     return result
+
     def recall(self, x):
         self.layers[0].recall(x)
         return self.layers[1].recall(self.layers[0].outputs)
@@ -106,14 +132,18 @@ class Net:
         self.output = self.layers[1]
         for l in self.layers:
             l.init(random_range_min, random_range_max)
-        self.layers[0].w[0][0] = -  0.214767760000000
-        self.layers[0].w[0][1] = -  0.045404790000000
+
+        # inicializace vah
+        self.layers[0].w[0][0] = -0.214767760000000
+        self.layers[0].w[0][1] = -0.045404790000000
         self.layers[0].w[1][0] = 0.106739550000000
         self.layers[0].w[1][1] = 0.136999780000000
-        self.layers[0].th[0] = -  0.299236760000000
-        self.layers[0].th[1] = 0.122603690000000
         self.layers[1].w[0][0] = 0.025870070000000
         self.layers[1].w[0][1] = 0.168638190000000
+
+        # inicializace threshold
+        self.layers[0].th[0] = -0.299236760000000
+        self.layers[0].th[1] = 0.122603690000000
         self.layers[1].th[0] = 0.019322390000000
 
     def epoch_start(self):
@@ -133,36 +163,37 @@ class Net:
         return e
 
     def print_net(self):
-        print("%1.15f" % self.layers[1].outputs[0] + "; output:y")
-        print("%1.15f" % self.layers[1].th[0] + "; output:threshold")
-        print("%1.15f" % self.layers[1].w[0][0] + "; output:w[0]")
-        print("%1.15f" % self.layers[1].w[0][1] + "; output:w[1]")
-        print("%1.15f" % self.layers[1].delta[0] + "; output:delta")
-        print("%1.15f" % self.layers[1].dths[0] + "; output:deltathreshold")
-        print("%1.15f" % self.layers[1].dws[0][0] + "; output:deltaw[0]")
-        print("%1.15f" % self.layers[1].dws[0][1] + "; output:deltaw[1]")
-        print("%1.15f" % self.layers[0].outputs[0] + "; hidden:y[0]")
-        print("%1.15f" % self.layers[0].outputs[1] + "; hidden:y[1]")
-        print("%1.15f" % self.layers[0].th[0] + "; hidden:threshold[0]")
-        print("%1.15f" % self.layers[0].th[1] + "; hidden:threshold[1]")
-        print("%1.15f" % self.layers[0].w[0][0] + "; hidden:w[0][0]")
-        print("%1.15f" % self.layers[0].w[0][1] + "; hidden:w[0][1]")
-        print("%1.15f" % self.layers[0].w[1][0] + "; hidden:w[1][0]")
-        print("%1.15f" % self.layers[0].w[1][1] + "; hidden:w[1][1]")
-        print("%1.15f" % self.layers[0].delta[0] + "; hidden:delta[0]")
-        print("%1.15f" % self.layers[0].delta[1] + "; hidden:delta[1]")
-        print("%1.15f" % self.layers[0].dths[0] + "; hidden:deltathreshold[0]")
-        print("%1.15f" % self.layers[0].dths[1] + "; hidden:deltathreshold[1]")
-        print("%1.15f" % self.layers[0].dws[0][0] + "; hidden:deltaw[0][0]")
-        print("%1.15f" % self.layers[0].dws[0][1] + "; hidden:deltaw[0][1]")
-        print("%1.15f" % self.layers[0].dws[1][0] + "; hidden:deltaw[1][0]")
-        print("%1.15f" % self.layers[0].dws[1][1] + "; hidden:deltaw[1][1]")
-        # print("%1.15f" % self.layers[0].oth[0] + "; hidden:old delta threshold [0]")
-        # print("%1.15f" % self.layers[0].oth[1] + "; hidden:old delta threshold [1]")
-        print("%1.15f" % self.layers[0].odw[0][0] + "; hidden:olddeltaw[0][0]")
-        print("%1.15f" % self.layers[0].odw[0][1] + "; hidden:olddeltaw[0][1]")
-        print("%1.15f" % self.layers[0].odw[1][0] + "; hidden:olddeltaw[1][0]")
-        print("%1.15f" % self.layers[0].odw[1][1] + "; hidden:olddeltaw[1][1]")
+        print("# iterace ")
+        # print("% 1.15f" % self.layers[0].num_inputs[0] + "; input [0]")
+        # print("% 1.15f" % self.layers[0].num_inputs[1] + "; input [1]")
+        print("% 1.15f" % self.layers[1].outputs[0] + "; output: y")
+        print("% 1.15f" % self.layers[1].th[0] + "; output: threshold")
+        print("% 1.15f" % self.layers[1].w[0][0] + "; output: w[0]")
+        print("% 1.15f" % self.layers[1].w[0][1] + "; output: w[1]")
+        print("% 1.15f" % self.layers[1].delta[0] + "; output: delta")
+        print("% 1.15f" % self.layers[1].dths[0] + "; output: delta threshold")
+        print("% 1.15f" % self.layers[1].dws[0][0] + "; output: delta w[0]")
+        print("% 1.15f" % self.layers[1].dws[0][1] + "; output: delta w[1]")
+        print("% 1.15f" % self.layers[0].outputs[0] + "; hidden: y[0]")
+        print("% 1.15f" % self.layers[0].outputs[1] + "; hidden: y[1]")
+        print("% 1.15f" % self.layers[0].th[0] + "; hidden: threshold[0]")
+        print("% 1.15f" % self.layers[0].th[1] + "; hidden: threshold[1]")
+        print("% 1.15f" % self.layers[0].w[0][0] + "; hidden: w[0][0]")
+        print("% 1.15f" % self.layers[0].w[0][1] + "; hidden: w[0][1]")
+        print("% 1.15f" % self.layers[0].w[1][0] + "; hidden: w[1][0]")
+        print("% 1.15f" % self.layers[0].w[1][1] + "; hidden: w[1][1]")
+        print("% 1.15f" % self.layers[0].delta[0] + "; hidden: delta[0]")
+        print("% 1.15f" % self.layers[0].delta[1] + "; hidden: delta[1]")
+        print("% 1.15f" % self.layers[0].dths[0] + "; hidden: delta hreshold[0]")
+        print("% 1.15f" % self.layers[0].dths[1] + "; hidden: delta threshold[1]")
+        print("% 1.15f" % self.layers[0].dws[0][0] + "; hidden: delta w[0][0]")
+        print("% 1.15f" % self.layers[0].dws[0][1] + "; hidden: delta w[0][1]")
+        print("% 1.15f" % self.layers[0].dws[1][0] + "; hidden: delta w[1][0]")
+        print("% 1.15f" % self.layers[0].dws[1][1] + "; hidden: delta w[1][1]")
+        print("% 1.15f" % self.layers[0].odw[0][0] + "; hidden: old delta w[0][0]")
+        print("% 1.15f" % self.layers[0].odw[0][1] + "; hidden: old delta w[0][1]")
+        print("% 1.15f" % self.layers[0].odw[1][0] + "; hidden: old delta w[1][0]")
+        print("% 1.15f" % self.layers[0].odw[1][1] + "; hidden: old delta w[1][1]")
 
 
 if __name__ == "__main__":
@@ -175,27 +206,30 @@ if __name__ == "__main__":
         np.array([np.array([1, 0]), np.array([1])]),
         np.array([np.array([1, 1]), np.array([0])]),
     ])
-    print("Before learn:", net.recall(trainSet[0][0]))
+    print("Start")
+    print("Pred learn:", net.recall(trainSet[0][0]))
 
     avgErr = 0
     err = 0
-    for i in range(10000):
-        print("EPOCH:", i + 1)
+
+    for i in range(100):
+        print("Epocha:", i + 1)
         avgErr = 0
         net.epoch_start()
         for pat in trainSet:
             avgErr += net.learn(pat[0], pat[1])
+            net.print_net()
         net.epoch_finish()
         err = avgErr / len(trainSet)
 
         if err < 0.05:
             break
         print("Error:", err)
-        print("========================")
+        print("------------------------------")
 
     net.print_net()
 
-    print("After learn 0,0:", net.recall(trainSet[0][0]))
-    print("After learn 1,0:", net.recall(trainSet[1][0]))
-    print("After learn 0,1:", net.recall(trainSet[2][0]))
-    print("After learn 1,1:", net.recall(trainSet[3][0]))
+    print("Po learn 0,0:", net.recall(trainSet[0][0]))
+    print("Po learn 1,0:", net.recall(trainSet[1][0]))
+    print("Po learn 0,1:", net.recall(trainSet[2][0]))
+    print("Po learn 1,1:", net.recall(trainSet[3][0]))
