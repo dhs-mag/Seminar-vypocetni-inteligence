@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import random as random
 
+import sys
+
 random.seed(351)
 
 def sigmoida(phi):
@@ -136,37 +138,37 @@ class Net:
         self.layers[0].learn(x)
         return e
 
-    def print_net(self):
-        print("%1.15f" % self.layers[1].outputs[0] + ";output:y")
-        print("%1.15f" % self.layers[1].th[0] + ";output:threshold")
-        print("%1.15f" % self.layers[1].w[0][0] + ";output:w[0]")
-        print("%1.15f" % self.layers[1].w[0][1] + ";output:w[1]")
-        print("%1.15f" % self.layers[1].delta[0] + ";output:delta")
-        print("%1.15f" % self.layers[1].dths[0] + ";output:deltathreshold")
-        print("%1.15f" % self.layers[1].dws[0][0] + ";output:deltaw[0]")
-        print("%1.15f" % self.layers[1].dws[0][1] + ";output:deltaw[1]")
-        print("%1.15f" % self.layers[0].outputs[0] + ";hidden:y[0]")
-        print("%1.15f" % self.layers[0].outputs[1] + ";hidden:y[1]")
-        print("%1.15f" % self.layers[0].th[0] + ";hidden:threshold[0]")
-        print("%1.15f" % self.layers[0].th[1] + ";hidden:threshold[1]")
-        print("%1.15f" % self.layers[0].w[0][0] + ";hidden:w[0][0]")
-        print("%1.15f" % self.layers[0].w[0][1] + ";hidden:w[0][1]")
-        print("%1.15f" % self.layers[0].w[1][0] + ";hidden:w[1][0]")
-        print("%1.15f" % self.layers[0].w[1][1] + ";hidden:w[1][1]")
-        print("%1.15f" % self.layers[0].delta[0] + ";hidden:delta[0]")
-        print("%1.15f" % self.layers[0].delta[1] + ";hidden:delta[1]")
-        print("%1.15f" % self.layers[0].dths[0] + ";hidden:deltathreshold[0]")
-        print("%1.15f" % self.layers[0].dths[1] + ";hidden:deltathreshold[1]")
-        print("%1.15f" % self.layers[0].dws[0][0] + ";hidden:deltaw[0][0]")
-        print("%1.15f" % self.layers[0].dws[0][1] + ";hidden:deltaw[0][1]")
-        print("%1.15f" % self.layers[0].dws[1][0] + ";hidden:deltaw[1][0]")
-        print("%1.15f" % self.layers[0].dws[1][1] + ";hidden:deltaw[1][1]")
-        # print("%1.15f" % self.layers[0].oth[0] + ";hidden:old delta threshold [0]")
-        # print("%1.15f" % self.layers[0].oth[1] + ";hidden:old delta threshold [1]")
-        print("%1.15f" % self.layers[0].odw[0][0] + ";hidden:olddeltaw[0][0]")
-        print("%1.15f" % self.layers[0].odw[0][1] + ";hidden:olddeltaw[0][1]")
-        print("%1.15f" % self.layers[0].odw[1][0] + ";hidden:olddeltaw[1][0]")
-        print("%1.15f" % self.layers[0].odw[1][1] + ";hidden:olddeltaw[1][1]")
+    def print_net(self, file=sys.stdout):
+        print(("  % 1.15f" % self.layers[1].outputs[0]).replace('.', ',') + " ; output: y ", file=file)
+        print(("  % 1.15f" % -self.layers[1].th[0]).replace('.', ',') + " ; output: threshold", file=file)
+        print(("  % 1.15f" % self.layers[1].w[0][0]).replace('.', ',') + " ; output: w[0]", file=file)
+        print(("  % 1.15f" % self.layers[1].w[0][1]).replace('.', ',') + " ; output: w[1]", file=file)
+        print(("  % 1.15f" % self.layers[1].delta[0]).replace('.', ',') + " ; output: delta", file=file)
+        print(("  % 1.15f" % -self.layers[1].dths[0]).replace('.', ',') + " ; output: delta threshold", file=file)
+        print(("  % 1.15f" % self.layers[1].dws[0][0]).replace('.', ',') + " ; output: delta w[0]", file=file)
+        print(("  % 1.15f" % self.layers[1].dws[0][1]).replace('.', ',') + " ; output: delta w[1]", file=file)
+        print(("  % 1.15f" % self.layers[0].outputs[0]).replace('.', ',') + " ; hidden: y[0]", file=file)
+        print(("  % 1.15f" % self.layers[0].outputs[1]).replace('.', ',') + " ; hidden: y[1]", file=file)
+        print(("  % 1.15f" % -self.layers[0].th[0]).replace('.', ',') + " ; hidden: threshold [0]", file=file)
+        print(("  % 1.15f" % -self.layers[0].th[1]).replace('.', ',') + " ; hidden: threshold [1]", file=file)
+        print(("  % 1.15f" % self.layers[0].w[0][0]).replace('.', ',') + " ; hidden: w[0][0]", file=file)
+        print(("  % 1.15f" % self.layers[0].w[0][1]).replace('.', ',') + " ; hidden: w[0][1]", file=file)
+        print(("  % 1.15f" % self.layers[0].w[1][0]).replace('.', ',') + " ; hidden: w[1][0]", file=file)
+        print(("  % 1.15f" % self.layers[0].w[1][1]).replace('.', ',') + " ; hidden: w[1][1]", file=file)
+        print(("  % 1.15f" % self.layers[0].delta[0]).replace('.', ',') + " ; hidden: delta [0]", file=file)
+        print(("  % 1.15f" % self.layers[0].delta[1]).replace('.', ',') + " ; hidden: delta [1]", file=file)
+        print(("  % 1.15f" % -self.layers[0].dths[0]).replace('.', ',') + " ; hidden: delta threshold [0]", file=file)
+        print(("  % 1.15f" % -self.layers[0].dths[1]).replace('.', ',') + " ; hidden: delta threshold [1]", file=file)
+        print(("  % 1.15f" % self.layers[0].dws[0][0]).replace('.', ',') + " ; hidden: delta w[0][0]", file=file)
+        print(("  % 1.15f" % self.layers[0].dws[0][1]).replace('.', ',') + " ; hidden: delta w[0][1]", file=file)
+        print(("  % 1.15f" % self.layers[0].dws[1][0]).replace('.', ',') + " ; hidden: delta w[1][0]", file=file)
+        print(("  % 1.15f" % self.layers[0].dws[1][1]).replace('.', ',') + " ; hidden: delta w[1][1]", file=file)
+        print(("  % 1.15f" % -self.layers[0].odth[0]).replace('.', ',') + " ; hidden: old delta threshold [0]", file=file)
+        print(("  % 1.15f" % -self.layers[0].odth[1]).replace('.', ',') + " ; hidden: old delta threshold [1]", file=file)
+        print(("  % 1.15f" % self.layers[0].odw[0][0]).replace('.', ',') + " ; hidden: old delta w[0][0]", file=file)
+        print(("  % 1.15f" % self.layers[0].odw[0][1]).replace('.', ',') + " ; hidden: old delta w[0][1]", file=file)
+        print(("  % 1.15f" % self.layers[0].odw[1][0]).replace('.', ',') + " ; hidden: old delta w[1][0]", file=file)
+        print(("  % 1.15f" % self.layers[0].odw[1][1]).replace('.', ',') + " ; hidden: old delta w[1][1]", file=file)
 
 if __name__ == "__main__":
     net = Net()
@@ -180,21 +182,47 @@ if __name__ == "__main__":
     ])
     print("Before learn:", net.recall(trainSet[0][0]))
 
+
+    outfile = open('output/code.txt', 'w')
+
+
+    print("""
+run:
+# BP 2-2-1, XOR problem
+# test start
+   0,800000000000000 ; eta
+   0,500000000000000 ; alpha
+# inicializace vah""", file=outfile)
+    net.print_net(outfile)
+
     avgErr = 0
     err = 0
-    for i in range(10000):
-        print("EPOCH:", i+1)
+    for i in range(24):
+        print("# epocha", i+1, file=outfile)
+
         avgErr = 0
         net.epochStart()
+        iteration = 1
         for pat in trainSet:
+            print("# iterace", iteration, file=outfile)
             avgErr += net.learn(pat[0], pat[1])
+
+            print(("  % 1.15f" % pat[0][0]).replace('.', ',') + " ; input [0]", file=outfile)
+            print(("  % 1.15f" % pat[0][1]).replace('.', ',') + " ; input [1]", file=outfile)
+            net.print_net(outfile)
+
+            iteration += 1
         net.epochFinish()
         err = avgErr/len(trainSet)
 
+        print("# weight update", file=outfile)
+        print(("  % 1.15f" % err).replace('.', ',') + " ; mse", file=outfile)
+        net.print_net(outfile)
+
         if err < 0.05:
             break
-        print("Error:", err)
-        print("========================")
+        # print("Error:", err)
+        # print("========================")
 
     net.print_net()
 
