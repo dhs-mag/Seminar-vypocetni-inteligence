@@ -1,12 +1,16 @@
+import locale
+
+import numpy as np
+from PIL import Image, ImageDraw
 
 import matplotlib.pyplot as plt
-import numpy as np
+import matplotlib.image as mpimg
 import random as random
 
 random.seed(351)
 
 def sigmoida(phi):
-    return 1.0 / (1.0 + np.exp(-phi))
+    return np.round(1.0 / (1.0 + np.exp(-phi)), 15)
 
 speed = 0.8 #rychlost učení
 inertia = 0.5 #setrvačnost
@@ -32,19 +36,15 @@ class Percepton:
         return diff @ diff / len(self.outputs)
 
     def learn(self, xInputs):
-        self.dws += self.delta * xInputs
+        # self.dws += self.delta * xInputs
+        for i in range(len(self.dws)):
+            self.dws[i] += self.delta[i] * xInputs
+
         self.dths += -self.delta
 
-        if True:
-            print("Inputs", xInputs)
-            print("DWS", self.dws)
-            print("DTHS", self.dths)
-            print("--------------")
-
-
     def backPropagate(self, prevLayer):
+        # print('out', np.transpose(self.w) @ self.delta)
         prevLayer.delta = (np.transpose(self.w) @ self.delta) * (prevLayer.outputs * (1 - prevLayer.outputs))
-
 
     def epochStart(self):
         self.dws = np.zeros((self.num_outputs, self.num_inputs))
@@ -52,17 +52,13 @@ class Percepton:
         self.outputs = np.zeros(self.num_outputs)
 
     def epochFinish(self):
-        self.dws = speed * self.dws + inertia * self.odw
-        self.dths = speed * self.dths + inertia * self.odth
+        dws_temp = speed * self.dws + inertia * self.odw
+        self.w += dws_temp
+        self.odw = dws_temp
 
-        self.w += self.dws
-        self.th += self.dths
-        print("W", self.w)
-        print("TH", self.th)
-        print("---------------------")
-        self.odw = self.dws
-        self.othw = self.dths
-
+        dths_temp = speed * self.dths + inertia * self.odth
+        self.th += dths_temp
+        self.odth = dths_temp
 
     def recall(self, inputs_array):
         self.outputs = self.activation_function(self.w @ inputs_array - self.th)
@@ -100,48 +96,8 @@ def decision_boudary(w, th):
 
 class Net:
     def __init__(self):
-        #self.h = Percepton(2, 2, sigmoida)
-        #self.o = Percepton(1, 2, sigmoida)
-        #self.h.w[0][0] = 8
-        #self.h.w[0][1] = -8
-        #self.h.w[1][0] = 8
-        #self.h.w[1][1] = -8
-        #self.h.th[0] = -4
-        #self.h.th[1] = 4
-        #self.o.w[0][0] = 8
-        #self.o.w[0][1] = -8
-        #self.o.th[0] = 8
-
         self.layers = []
         self.output = []
-
-
-    def test(self):
-        size = 101
-        z = np.zeros((size, size))
-
-        for ax in range(size):
-            for ay in range(size):
-                z[ax, ay] = self.o.recall(self.h.recall(np.array([ax/(size-1), ay/(size-1)])))[0]*255
-
-        lines = net.get_decision_boudaries()         
-
-        # Subpolots images
-        fig, ax = plt.subplots()
-        img = ax.imshow(z, interpolation="bilinear", cmap="gray", origin="lower", extent=[0, 1, 0, 1], vmax=1, vmin=0)
-        for x in range(len(lines)):
-            ax.plot(lines[x][0], lines[x][1])
-        plt.xlabel("x1")
-        plt.ylabel("x2")
-        plt.show()
-
-
-    def get_decision_boudaries(self):
-        result = []
-        for x in range(len(self.h.th)):
-            result.append(decision_boudary(self.h.w[x], self.h.th[x]))
-        return result
-
 
     def recall(self, x):
         self.layers[0].recall(x)
@@ -151,9 +107,18 @@ class Net:
         self.layers = []
         self.layers.append(Percepton(2, 2, sigmoida))
         self.layers.append(Percepton(1, 2, sigmoida))
-
+        self.output = self.layers[1]
         for l in self.layers:
             l.init(randon_range_min, randon_range_max)
+        self.layers[0].w[0][0] = -  0.214767760000000
+        self.layers[0].w[0][1] = -  0.045404790000000
+        self.layers[0].w[1][0] =    0.106739550000000
+        self.layers[0].w[1][1] =    0.136999780000000
+        self.layers[0].th[0]   = -  0.299236760000000
+        self.layers[0].th[1]   =    0.122603690000000
+        self.layers[1].w[0][0] =    0.025870070000000
+        self.layers[1].w[0][1] =    0.168638190000000
+        self.layers[1].th[0]   =    0.019322390000000
 
     def epochStart(self):
         for l in self.layers:
@@ -166,14 +131,43 @@ class Net:
     def learn(self, x, d):
         self.recall(x)
         e = self.layers[1].outputDelta(d)
+        # print('mse', e)
+        self.layers[1].learn(self.layers[0].outputs)
         self.layers[1].backPropagate(self.layers[0])
         self.layers[0].learn(x)
-        self.layers[1].learn(self.layers[0].outputs)
-        
         return e
-    
-    
 
+    def print_net(self):
+        print("%1.15f" % self.layers[1].outputs[0] + ";output:y")
+        print("%1.15f" % self.layers[1].th[0] + ";output:threshold")
+        print("%1.15f" % self.layers[1].w[0][0] + ";output:w[0]")
+        print("%1.15f" % self.layers[1].w[0][1] + ";output:w[1]")
+        print("%1.15f" % self.layers[1].delta[0] + ";output:delta")
+        print("%1.15f" % self.layers[1].dths[0] + ";output:deltathreshold")
+        print("%1.15f" % self.layers[1].dws[0][0] + ";output:deltaw[0]")
+        print("%1.15f" % self.layers[1].dws[0][1] + ";output:deltaw[1]")
+        print("%1.15f" % self.layers[0].outputs[0] + ";hidden:y[0]")
+        print("%1.15f" % self.layers[0].outputs[1] + ";hidden:y[1]")
+        print("%1.15f" % self.layers[0].th[0] + ";hidden:threshold[0]")
+        print("%1.15f" % self.layers[0].th[1] + ";hidden:threshold[1]")
+        print("%1.15f" % self.layers[0].w[0][0] + ";hidden:w[0][0]")
+        print("%1.15f" % self.layers[0].w[0][1] + ";hidden:w[0][1]")
+        print("%1.15f" % self.layers[0].w[1][0] + ";hidden:w[1][0]")
+        print("%1.15f" % self.layers[0].w[1][1] + ";hidden:w[1][1]")
+        print("%1.15f" % self.layers[0].delta[0] + ";hidden:delta[0]")
+        print("%1.15f" % self.layers[0].delta[1] + ";hidden:delta[1]")
+        print("%1.15f" % self.layers[0].dths[0] + ";hidden:deltathreshold[0]")
+        print("%1.15f" % self.layers[0].dths[1] + ";hidden:deltathreshold[1]")
+        print("%1.15f" % self.layers[0].dws[0][0] + ";hidden:deltaw[0][0]")
+        print("%1.15f" % self.layers[0].dws[0][1] + ";hidden:deltaw[0][1]")
+        print("%1.15f" % self.layers[0].dws[1][0] + ";hidden:deltaw[1][0]")
+        print("%1.15f" % self.layers[0].dws[1][1] + ";hidden:deltaw[1][1]")
+        # print("%1.15f" % self.layers[0].oth[0] + ";hidden:old delta threshold [0]")
+        # print("%1.15f" % self.layers[0].oth[1] + ";hidden:old delta threshold [1]")
+        print("%1.15f" % self.layers[0].odw[0][0] + ";hidden:olddeltaw[0][0]")
+        print("%1.15f" % self.layers[0].odw[0][1] + ";hidden:olddeltaw[0][1]")
+        print("%1.15f" % self.layers[0].odw[1][0] + ";hidden:olddeltaw[1][0]")
+        print("%1.15f" % self.layers[0].odw[1][1] + ";hidden:olddeltaw[1][1]")
 
 if __name__ == "__main__":
     net = Net()
@@ -188,14 +182,24 @@ if __name__ == "__main__":
     print("Before learn:", net.recall(trainSet[0][0]))
 
     avgErr = 0
-    for i in range(2):
+    err = 0
+    for i in range(10000):
         print("EPOCH:", i+1)
         avgErr = 0
         net.epochStart()
         for pat in trainSet:
             avgErr += net.learn(pat[0], pat[1])
         net.epochFinish()
-        print("Error:", avgErr/len(trainSet))
+        err = avgErr/len(trainSet)
+
+        if err < 0.05:
+            break
+        print("Error:", err)
         print("========================")
 
-    print("After learn:", net.recall(trainSet[0][0]))
+    net.print_net()
+
+    print("After learn 0,0:", net.recall(trainSet[0][0]))
+    print("After learn 1,0:", net.recall(trainSet[1][0]))
+    print("After learn 0,1:", net.recall(trainSet[2][0]))
+    print("After learn 1,1:", net.recall(trainSet[3][0]))
