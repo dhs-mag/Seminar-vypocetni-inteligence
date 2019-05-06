@@ -37,8 +37,7 @@ class Percepton:
 
     def learn(self, xInputs):
         # self.dws += self.delta * xInputs
-        for i in range(len(self.dws)):
-            self.dws[i] += self.delta[i] * xInputs
+        self.dws += np.vstack(self.delta) * xInputs
 
         self.dths += -self.delta
 
