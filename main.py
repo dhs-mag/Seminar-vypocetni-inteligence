@@ -13,8 +13,8 @@ import random as random
 def sigmoida(phi):
     return np.round(1.0 / (1.0 + np.exp(-phi)), 15)
 
-speed = 0.8 #rychlost učení
-inertia = 0.5 #setrvačnost
+speed = 0.5 #rychlost učení
+inertia = 0.1 #setrvačnost
 
 class Percepton:
     def __init__(self, num_outputs, num_inputs, activation):
@@ -170,6 +170,11 @@ class Net:
         print("%1.15f" % self.layers[0].odw[1][0] + ";hidden:olddeltaw[1][0]")
         print("%1.15f" % self.layers[0].odw[1][1] + ";hidden:olddeltaw[1][1]")
 
+
+def normalize(value, min, max):
+    return (value - min) / (max - min)
+
+
 if __name__ == "__main__":
     net = Net()
     net.netInit(-0.3, 0.3)
@@ -187,10 +192,10 @@ if __name__ == "__main__":
             trainSet.append(
                       [
                           np.array([
-                              float(item[0]),
-                              float(item[1]),
-                              float(item[2]),
-                              float(item[3])
+                              normalize(float(item[0]), 4.3, 7.9),
+                              normalize(float(item[1]), 2, 4.4),
+                              normalize(float(item[2]), 1, 6.9),
+                              normalize(float(item[3]), 0.1, 2.5)
                           ]),
                           np.array([
                               1 if item[4] == "Iris-virginica" else 0,
@@ -220,14 +225,13 @@ if __name__ == "__main__":
         net.epochFinish()
         err = avgErr/len(trainSet)
 
-        if err < 0.003:
+        if err < 0.009:
+            print("EPOCH:", i + 1)
+            print("Error:", err)
+            print("========================")
             break
 
-        rmsTemp = 0
-        for pat in trainSet:
-            rmsTemp += np.square(net.recall(pat[0]) - pat[1])
-
-        rms.append( np.sqrt((1/ len(trainSet)) * rmsTemp ))
+        rms.append( err )
         epoch.append(i + 1)
 
         if i % 100 == 0:
@@ -235,7 +239,7 @@ if __name__ == "__main__":
             print("Error:", err)
             print("========================")
 
-    net.print_net()
+    # net.print_net()
 
     # graph
 
@@ -248,7 +252,7 @@ if __name__ == "__main__":
 
 
 
-    print("After learn 0,0:", net.recall(trainSet[0][0]))
-    print("After learn 1,0:", net.recall(trainSet[1][0]))
-    print("After learn 0,1:", net.recall(trainSet[2][0]))
-    print("After learn 1,1:", net.recall(trainSet[3][0]))
+    print("After learn "+str(trainSet[0][1])+" :", np.round(net.recall(trainSet[0][0])))
+    print("After learn "+str(trainSet[55][1])+" :", np.round(net.recall(trainSet[55][0])))
+    print("After learn "+str(trainSet[107][1])+" :", np.round(net.recall(trainSet[107][0])))
+    print("After learn "+str(trainSet[142][1])+" :", np.round(net.recall(trainSet[142][0])))
