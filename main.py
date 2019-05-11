@@ -1,3 +1,5 @@
+import csv
+
 import numpy as np
 import matplotlib.pyplot as plt
 import random as random
@@ -127,24 +129,31 @@ class Net:
 
     def net_init(self, random_range_min, random_range_max):
         self.layers = []
-        self.layers.append(Percepton(2, 2, sigmoida))
-        self.layers.append(Percepton(1, 2, sigmoida))
+        self.layers.append(Percepton(4, 4, sigmoida))
+        self.layers.append(Percepton(3, 4, sigmoida))
         self.output = self.layers[1]
         for l in self.layers:
             l.init(random_range_min, random_range_max)
 
-        # inicializace vah
-        self.layers[0].w[0][0] = -0.214767760000000
-        self.layers[0].w[0][1] = -0.045404790000000
-        self.layers[0].w[1][0] = 0.106739550000000
-        self.layers[0].w[1][1] = 0.136999780000000
-        self.layers[1].w[0][0] = 0.025870070000000
-        self.layers[1].w[0][1] = 0.168638190000000
-
-        # inicializace threshold
-        self.layers[0].th[0] = -0.299236760000000
-        self.layers[0].th[1] = 0.122603690000000
-        self.layers[1].th[0] = 0.019322390000000
+        # self.layers = []
+        # self.layers.append(Percepton(2, 2, sigmoida))
+        # self.layers.append(Percepton(1, 2, sigmoida))
+        # self.output = self.layers[1]
+        # for l in self.layers:
+        #     l.init(random_range_min, random_range_max)
+        #
+        # # inicializace vah
+        # self.layers[0].w[0][0] = -0.214767760000000
+        # self.layers[0].w[0][1] = -0.045404790000000
+        # self.layers[0].w[1][0] = 0.106739550000000
+        # self.layers[0].w[1][1] = 0.136999780000000
+        # self.layers[1].w[0][0] = 0.025870070000000
+        # self.layers[1].w[0][1] = 0.168638190000000
+        #
+        # # inicializace threshold
+        # self.layers[0].th[0] = -0.299236760000000
+        # self.layers[0].th[1] = 0.122603690000000
+        # self.layers[1].th[0] = 0.019322390000000
 
     def epoch_start(self):
         for l in self.layers:
@@ -196,40 +205,82 @@ class Net:
         print("% 1.15f" % self.layers[0].odw[1][1] + "; hidden: old delta w[1][1]")
 
 
+def normalize(value, min, max):
+    return (value - min) / (max - min)
+
+
 if __name__ == "__main__":
     net = Net()
     net.net_init(-0.3, 0.3)
 
-    trainSet = np.array([
-        np.array([np.array([0, 0]), np.array([0])]),
-        np.array([np.array([0, 1]), np.array([1])]),
-        np.array([np.array([1, 0]), np.array([1])]),
-        np.array([np.array([1, 1]), np.array([0])]),
-    ])
-    print("Start")
-    print("Pred learn:", net.recall(trainSet[0][0]))
+    filename = 'iris.csv'
+    raw_data = open(filename, 'rt')
+    reader = csv.reader(raw_data, delimiter=',', quoting=csv.QUOTE_NONE)
+    x = list(reader)
 
     avgErr = 0
     err = 0
 
-    for i in range(100):
-        print("Epocha:", i + 1)
+    trainSet = []
+
+    # Coding
+    # Virginica     100
+    # Versicolor    010
+    # Setosa        001
+
+    for item in x:
+        if len(item) > 0:
+            trainSet.append(
+                [
+                    np.array([
+                        normalize(float(item[0]), 4.3, 7.9),
+                        normalize(float(item[1]), 2, 4.4),
+                        normalize(float(item[2]), 1, 6.9),
+                        normalize(float(item[3]), 0.1, 2.5)
+                    ]),
+                    np.array([
+                        1 if item[4] == 100 else 0,
+                        1 if item[4] == 010 else 0,
+                        1 if item[4] == 001 else 0
+                    ])
+                ])
+
+    rms = []
+    epoch = []
+    avgErr = 0
+    err = 0
+
+    for i in range(10000):
         avgErr = 0
         net.epoch_start()
         for pat in trainSet:
             avgErr += net.learn(pat[0], pat[1])
-            net.print_net()
         net.epoch_finish()
         err = avgErr / len(trainSet)
 
-        if err < 0.05:
+        if err < 0.009:
+            print("EPOCH:", i + 1)
+            print("Error:", err)
+            print("----------------------------")
             break
-        print("Error:", err)
-        print("------------------------------")
 
-    net.print_net()
+        rms.append(err)
+        epoch.append(i + 1)
 
-    print("Po learn 0,0:", net.recall(trainSet[0][0]))
-    print("Po learn 1,0:", net.recall(trainSet[1][0]))
-    print("Po learn 0,1:", net.recall(trainSet[2][0]))
-    print("Po learn 1,1:", net.recall(trainSet[3][0]))
+        if i % 100 == 0:
+            print("EPOCH:", i + 1)
+            print("Error:", err)
+            print("----------------------------")
+
+    # graph
+    fig, axs = plt.subplots(1, 1)
+    axs.plot(epoch, rms)
+    axs.set_xlabel('Epoch')
+    axs.set_ylabel('Error')
+    axs.grid(True)
+    plt.show()
+
+    print("After learn " + str(trainSet[0][1]) + " :", np.round(net.recall(trainSet[0][0])))
+    print("After learn " + str(trainSet[55][1]) + " :", np.round(net.recall(trainSet[55][0])))
+    print("After learn " + str(trainSet[107][1]) + " :", np.round(net.recall(trainSet[107][0])))
+    print("After learn " + str(trainSet[142][1]) + " :", np.round(net.recall(trainSet[142][0])))
