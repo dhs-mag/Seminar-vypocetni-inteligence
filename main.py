@@ -4,15 +4,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random as random
 
-random.seed(351)
+#random.seed(351)
 
 
 def sigmoida(phi):
     return np.round(1.0 / (1.0 + np.exp(-phi)), 15)
 
 
-speed = 0.8  # rychlost učení
-inertia = 0.5  # setrvačnost
+speed = 0.5  # rychlost učení
+inertia = 0.1  # setrvačnost
 
 
 class Percepton:
@@ -37,6 +37,7 @@ class Percepton:
     def learn(self, x):
         for j in range(len(self.dws)):
             self.dws[j] += self.delta[j] * x
+        self.dths += -self.delta
 
     def back_propagate(self, prevLayer):
         prevLayer.delta = (np.transpose(self.w) @ self.delta) * (prevLayer.outputs * (1 - prevLayer.outputs))
@@ -135,22 +136,15 @@ class Net:
         for l in self.layers:
             l.init(random_range_min, random_range_max)
 
-        # self.layers = []
-        # self.layers.append(Percepton(2, 2, sigmoida))
-        # self.layers.append(Percepton(1, 2, sigmoida))
-        # self.output = self.layers[1]
-        # for l in self.layers:
-        #     l.init(random_range_min, random_range_max)
-        #
-        # # inicializace vah
+        # inicializace vah
         # self.layers[0].w[0][0] = -0.214767760000000
         # self.layers[0].w[0][1] = -0.045404790000000
         # self.layers[0].w[1][0] = 0.106739550000000
         # self.layers[0].w[1][1] = 0.136999780000000
         # self.layers[1].w[0][0] = 0.025870070000000
         # self.layers[1].w[0][1] = 0.168638190000000
-        #
-        # # inicializace threshold
+
+        # inicializace threshold
         # self.layers[0].th[0] = -0.299236760000000
         # self.layers[0].th[1] = 0.122603690000000
         # self.layers[1].th[0] = 0.019322390000000
@@ -172,7 +166,6 @@ class Net:
         return e
 
     def print_net(self):
-        print("# iterace ")
         # print("% 1.15f" % self.layers[0].num_inputs[0] + "; input [0]")
         # print("% 1.15f" % self.layers[0].num_inputs[1] + "; input [1]")
         print("% 1.15f" % self.layers[1].outputs[0] + "; output: y")
@@ -218,15 +211,7 @@ if __name__ == "__main__":
     reader = csv.reader(raw_data, delimiter=',', quoting=csv.QUOTE_NONE)
     x = list(reader)
 
-    avgErr = 0
-    err = 0
-
     trainSet = []
-
-    # Coding
-    # Virginica     100
-    # Versicolor    010
-    # Setosa        001
 
     for item in x:
         if len(item) > 0:
@@ -239,9 +224,9 @@ if __name__ == "__main__":
                         normalize(float(item[3]), 0.1, 2.5)
                     ]),
                     np.array([
-                        1 if item[4] == 100 else 0,
-                        1 if item[4] == 010 else 0,
-                        1 if item[4] == 001 else 0
+                        1 if item[4] == "Iris-virginica" else 0,
+                        1 if item[4] == "Iris-versicolor" else 0,
+                        1 if item[4] == "Iris-setosa" else 0
                     ])
                 ])
 
