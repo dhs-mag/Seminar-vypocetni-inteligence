@@ -7,8 +7,8 @@ def sigmoida(phi):
     return np.round(1.0 / (1.0 + np.exp(-phi)), 15)
 
 
-speed = 0.5  # rychlost učení
-inertia = 0.1  # setrvačnost
+alpha = 0.5  # rychlost učení
+eta = 0.1  # setrvačnost
 
 
 class Percepton:
@@ -44,11 +44,11 @@ class Percepton:
         self.outputs = np.zeros(self.num_outputs)
 
     def epoch_finish(self):
-        dws_temp = speed * self.dws + inertia * self.odw
+        dws_temp = alpha * self.dws + eta * self.odw
         self.w += dws_temp
         self.odw = dws_temp
 
-        dths_temp = speed * self.dths + inertia * self.odth
+        dths_temp = alpha * self.dths + eta * self.odth
         self.th += dths_temp
         self.odth = dths_temp
 
