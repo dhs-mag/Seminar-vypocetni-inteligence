@@ -1,11 +1,7 @@
 import csv
-
 import numpy as np
 import matplotlib.pyplot as plt
 import random as random
-
-#random.seed(351)
-
 
 def sigmoida(phi):
     return np.round(1.0 / (1.0 + np.exp(-phi)), 15)
@@ -97,33 +93,6 @@ class Net:
         self.layers = []
         self.output = []
 
-    # def test(self):
-    #     z = np.zeros((101, 101))
-    #     for ay in range(101):
-    #         for ax in range(100):
-    #             z[ay, ax] = self.oth.recall(self.th.recall(np.array([ay / 100, ax / 100])))
-    #
-    #         lines = net.get_decision_boundaries()
-    #
-    #         # Subplots images
-    #         fig, fg = plt.subplots()
-    #         im = fg.imshow(z, interpolation='bilinear', cmap='gray', origin='lower', extent=[0, 1, 0, 1],
-    #                        vmax=1,
-    #                        vmin=0)
-    #         for x in range(len(lines)):
-    #             fg.plot(lines[x][0], lines[x][1])
-    #
-    #         fig.colorbar(im)
-    #         plt.xlabel("x0")
-    #         plt.ylabel("x1")
-    #         plt.show()
-
-    # def get_decision_boundaries(self):
-    #     result = []
-    #     for x in range(len(self.h.th)):
-    #         result.append(self.decision_boundary(self.h.w[x], self.h.th[x]))
-    #     return result
-
     def recall(self, x):
         self.layers[0].recall(x)
         return self.layers[1].recall(self.layers[0].outputs)
@@ -135,19 +104,6 @@ class Net:
         self.output = self.layers[1]
         for l in self.layers:
             l.init(random_range_min, random_range_max)
-
-        # inicializace vah
-        # self.layers[0].w[0][0] = -0.214767760000000
-        # self.layers[0].w[0][1] = -0.045404790000000
-        # self.layers[0].w[1][0] = 0.106739550000000
-        # self.layers[0].w[1][1] = 0.136999780000000
-        # self.layers[1].w[0][0] = 0.025870070000000
-        # self.layers[1].w[0][1] = 0.168638190000000
-
-        # inicializace threshold
-        # self.layers[0].th[0] = -0.299236760000000
-        # self.layers[0].th[1] = 0.122603690000000
-        # self.layers[1].th[0] = 0.019322390000000
 
     def epoch_start(self):
         for l in self.layers:
@@ -166,8 +122,6 @@ class Net:
         return e
 
     def print_net(self):
-        # print("% 1.15f" % self.layers[0].num_inputs[0] + "; input [0]")
-        # print("% 1.15f" % self.layers[0].num_inputs[1] + "; input [1]")
         print("% 1.15f" % self.layers[1].outputs[0] + "; output: y")
         print("% 1.15f" % self.layers[1].th[0] + "; output: threshold")
         print("% 1.15f" % self.layers[1].w[0][0] + "; output: w[0]")
