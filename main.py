@@ -94,67 +94,67 @@ class Net:
         if layer is None:
             layer = []
 
-        self.hidden_layer = layer
+        self.layers = layer
         # self.output = []
 
     def recall(self, x):
-        self.hidden_layer[0].recall(x)
-        return self.hidden_layer[1].recall(self.hidden_layer[0].outputs)
+        self.layers[0].recall(x)
+        return self.layers[1].recall(self.layers[0].outputs)
 
     def add_neuron(self, neuron: Perceptron):
-        self.hidden_layer.append(neuron)
+        self.layers.append(neuron)
 
     def net_init(self, random_range_min, random_range_max):
         # self.hidden_layer = []
         # self.output = self.hidden_layer[1]
-        for l in self.hidden_layer:
+        for l in self.layers:
             l.init(random_range_min, random_range_max)
 
     def epoch_start(self):
-        for l in self.hidden_layer:
+        for l in self.layers:
             l.epoch_start()
 
     def epoch_finish(self):
-        for l in self.hidden_layer:
+        for l in self.layers:
             l.epoch_finish()
 
     def learn(self, x, d):
         self.recall(x)
-        e = self.hidden_layer[1].output_delta(d)
-        self.hidden_layer[1].learn(self.hidden_layer[0].outputs)
-        self.hidden_layer[1].back_propagate(self.hidden_layer[0])
-        self.hidden_layer[0].learn(x)
+        e = self.layers[1].output_delta(d)
+        self.layers[1].learn(self.layers[0].outputs)
+        self.layers[1].back_propagate(self.layers[0])
+        self.layers[0].learn(x)
         return e
 
     def print_net(self):
-        print("% 1.15f" % self.hidden_layer[1].outputs[0] + "; output: y")
-        print("% 1.15f" % self.hidden_layer[1].th[0] + "; output: threshold")
-        print("% 1.15f" % self.hidden_layer[1].w[0][0] + "; output: w[0]")
-        print("% 1.15f" % self.hidden_layer[1].w[0][1] + "; output: w[1]")
-        print("% 1.15f" % self.hidden_layer[1].delta[0] + "; output: delta")
-        print("% 1.15f" % self.hidden_layer[1].dths[0] + "; output: delta threshold")
-        print("% 1.15f" % self.hidden_layer[1].dws[0][0] + "; output: delta w[0]")
-        print("% 1.15f" % self.hidden_layer[1].dws[0][1] + "; output: delta w[1]")
-        print("% 1.15f" % self.hidden_layer[0].outputs[0] + "; hidden: y[0]")
-        print("% 1.15f" % self.hidden_layer[0].outputs[1] + "; hidden: y[1]")
-        print("% 1.15f" % self.hidden_layer[0].th[0] + "; hidden: threshold[0]")
-        print("% 1.15f" % self.hidden_layer[0].th[1] + "; hidden: threshold[1]")
-        print("% 1.15f" % self.hidden_layer[0].w[0][0] + "; hidden: w[0][0]")
-        print("% 1.15f" % self.hidden_layer[0].w[0][1] + "; hidden: w[0][1]")
-        print("% 1.15f" % self.hidden_layer[0].w[1][0] + "; hidden: w[1][0]")
-        print("% 1.15f" % self.hidden_layer[0].w[1][1] + "; hidden: w[1][1]")
-        print("% 1.15f" % self.hidden_layer[0].delta[0] + "; hidden: delta[0]")
-        print("% 1.15f" % self.hidden_layer[0].delta[1] + "; hidden: delta[1]")
-        print("% 1.15f" % self.hidden_layer[0].dths[0] + "; hidden: delta hreshold[0]")
-        print("% 1.15f" % self.hidden_layer[0].dths[1] + "; hidden: delta threshold[1]")
-        print("% 1.15f" % self.hidden_layer[0].dws[0][0] + "; hidden: delta w[0][0]")
-        print("% 1.15f" % self.hidden_layer[0].dws[0][1] + "; hidden: delta w[0][1]")
-        print("% 1.15f" % self.hidden_layer[0].dws[1][0] + "; hidden: delta w[1][0]")
-        print("% 1.15f" % self.hidden_layer[0].dws[1][1] + "; hidden: delta w[1][1]")
-        print("% 1.15f" % self.hidden_layer[0].odw[0][0] + "; hidden: old delta w[0][0]")
-        print("% 1.15f" % self.hidden_layer[0].odw[0][1] + "; hidden: old delta w[0][1]")
-        print("% 1.15f" % self.hidden_layer[0].odw[1][0] + "; hidden: old delta w[1][0]")
-        print("% 1.15f" % self.hidden_layer[0].odw[1][1] + "; hidden: old delta w[1][1]")
+        print("% 1.15f" % self.layers[1].outputs[0] + "; output: y")
+        print("% 1.15f" % self.layers[1].th[0] + "; output: threshold")
+        print("% 1.15f" % self.layers[1].w[0][0] + "; output: w[0]")
+        print("% 1.15f" % self.layers[1].w[0][1] + "; output: w[1]")
+        print("% 1.15f" % self.layers[1].delta[0] + "; output: delta")
+        print("% 1.15f" % self.layers[1].dths[0] + "; output: delta threshold")
+        print("% 1.15f" % self.layers[1].dws[0][0] + "; output: delta w[0]")
+        print("% 1.15f" % self.layers[1].dws[0][1] + "; output: delta w[1]")
+        print("% 1.15f" % self.layers[0].outputs[0] + "; hidden: y[0]")
+        print("% 1.15f" % self.layers[0].outputs[1] + "; hidden: y[1]")
+        print("% 1.15f" % self.layers[0].th[0] + "; hidden: threshold[0]")
+        print("% 1.15f" % self.layers[0].th[1] + "; hidden: threshold[1]")
+        print("% 1.15f" % self.layers[0].w[0][0] + "; hidden: w[0][0]")
+        print("% 1.15f" % self.layers[0].w[0][1] + "; hidden: w[0][1]")
+        print("% 1.15f" % self.layers[0].w[1][0] + "; hidden: w[1][0]")
+        print("% 1.15f" % self.layers[0].w[1][1] + "; hidden: w[1][1]")
+        print("% 1.15f" % self.layers[0].delta[0] + "; hidden: delta[0]")
+        print("% 1.15f" % self.layers[0].delta[1] + "; hidden: delta[1]")
+        print("% 1.15f" % self.layers[0].dths[0] + "; hidden: delta hreshold[0]")
+        print("% 1.15f" % self.layers[0].dths[1] + "; hidden: delta threshold[1]")
+        print("% 1.15f" % self.layers[0].dws[0][0] + "; hidden: delta w[0][0]")
+        print("% 1.15f" % self.layers[0].dws[0][1] + "; hidden: delta w[0][1]")
+        print("% 1.15f" % self.layers[0].dws[1][0] + "; hidden: delta w[1][0]")
+        print("% 1.15f" % self.layers[0].dws[1][1] + "; hidden: delta w[1][1]")
+        print("% 1.15f" % self.layers[0].odw[0][0] + "; hidden: old delta w[0][0]")
+        print("% 1.15f" % self.layers[0].odw[0][1] + "; hidden: old delta w[0][1]")
+        print("% 1.15f" % self.layers[0].odw[1][0] + "; hidden: old delta w[1][0]")
+        print("% 1.15f" % self.layers[0].odw[1][1] + "; hidden: old delta w[1][1]")
 
 
 def normalize(value, min, max):
