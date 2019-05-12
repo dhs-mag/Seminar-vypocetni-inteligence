@@ -1,17 +1,20 @@
 import locale
 
+import csv
 import numpy as np
+from PIL import Image, ImageDraw
 
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import random as random
 
-random.seed(351)
+# random.seed(351)
 
 def sigmoida(phi):
     return np.round(1.0 / (1.0 + np.exp(-phi)), 15)
 
-speed = 0.8 #rychlost učení
-inertia = 0.5 #setrvačnost
+speed = 0.5 #rychlost učení
+inertia = 0.1 #setrvačnost
 
 class Percepton:
     def __init__(self, num_outputs, num_inputs, activation):
@@ -103,20 +106,20 @@ class Net:
 
     def netInit(self, randon_range_min, randon_range_max):
         self.layers = []
-        self.layers.append(Percepton(2, 2, sigmoida))
-        self.layers.append(Percepton(1, 2, sigmoida))
+        self.layers.append(Percepton(4, 4, sigmoida))
+        self.layers.append(Percepton(3, 4, sigmoida))
         self.output = self.layers[1]
         for l in self.layers:
             l.init(randon_range_min, randon_range_max)
-        self.layers[0].w[0][0] = -  0.214767760000000
-        self.layers[0].w[0][1] = -  0.045404790000000
-        self.layers[0].w[1][0] =    0.106739550000000
-        self.layers[0].w[1][1] =    0.136999780000000
-        self.layers[0].th[0]   = -  0.299236760000000
-        self.layers[0].th[1]   =    0.122603690000000
-        self.layers[1].w[0][0] =    0.025870070000000
-        self.layers[1].w[0][1] =    0.168638190000000
-        self.layers[1].th[0]   =    0.019322390000000
+        # self.layers[0].w[0][0] = -  0.214767760000000
+        # self.layers[0].w[0][1] = -  0.045404790000000
+        # self.layers[0].w[1][0] =    0.106739550000000
+        # self.layers[0].w[1][1] =    0.136999780000000
+        # self.layers[0].th[0]   = -  0.299236760000000
+        # self.layers[0].th[1]   =    0.122603690000000
+        # self.layers[1].w[0][0] =    0.025870070000000
+        # self.layers[1].w[0][1] =    0.168638190000000
+        # self.layers[1].th[0]   =    0.019322390000000
 
     def epochStart(self):
         for l in self.layers:
@@ -167,22 +170,54 @@ class Net:
         print("%1.15f" % self.layers[0].odw[1][0] + ";hidden:olddeltaw[1][0]")
         print("%1.15f" % self.layers[0].odw[1][1] + ";hidden:olddeltaw[1][1]")
 
+
+def normalize(value, min, max):
+    return (value - min) / (max - min)
+
+
 if __name__ == "__main__":
     net = Net()
     net.netInit(-0.3, 0.3)
 
-    trainSet = np.array([
-        np.array([np.array([0, 0]), np.array([0])]),
-        np.array([np.array([1, 0]), np.array([1])]),
-        np.array([np.array([0, 1]), np.array([1])]),
-        np.array([np.array([1, 1]), np.array([0])]),
-    ])
-    print("Before learn:", net.recall(trainSet[0][0]))
 
+    filename = 'iris.data'
+    raw_data = open(filename, 'rt')
+    reader = csv.reader(raw_data, delimiter=',', quoting=csv.QUOTE_NONE)
+    x = list(reader)
+
+    trainSet = []
+
+    for item in x:
+        if len(item) > 0:
+            trainSet.append(
+                      [
+                          np.array([
+                              normalize(float(item[0]), 4.3, 7.9),
+                              normalize(float(item[1]), 2, 4.4),
+                              normalize(float(item[2]), 1, 6.9),
+                              normalize(float(item[3]), 0.1, 2.5)
+                          ]),
+                          np.array([
+                              1 if item[4] == "Iris-virginica" else 0,
+                              1 if item[4] == "Iris-versicolor" else 0,
+                              1 if item[4] == "Iris-setosa" else 0
+                          ])
+                      ])
+
+
+    # trainSet = np.array([
+    #     np.array([np.array([0, 0]), np.array([0])]),
+    #     np.array([np.array([1, 0]), np.array([1])]),
+    #     np.array([np.array([0, 1]), np.array([1])]),
+    #     np.array([np.array([1, 1]), np.array([0])]),
+    # ])
+    # print("Before learn:", net.recall(trainSet[0][0]))
+    #
+    rms = []
+    epoch = []
     avgErr = 0
     err = 0
     for i in range(10000):
-        print("EPOCH:", i+1)
         avgErr = 0
         net.epochStart()
         for pat in trainSet:
@@ -190,14 +225,34 @@ if __name__ == "__main__":
         net.epochFinish()
         err = avgErr/len(trainSet)
 
-        if err < 0.05:
+        if err < 0.009:
+            print("EPOCH:", i + 1)
+            print("Error:", err)
+            print("========================")
             break
-        print("Error:", err)
-        print("========================")
 
-    net.print_net()
+        rms.append( err )
+        epoch.append(i + 1)
 
-    print("After learn 0,0:", net.recall(trainSet[0][0]))
-    print("After learn 1,0:", net.recall(trainSet[1][0]))
-    print("After learn 0,1:", net.recall(trainSet[2][0]))
-    print("After learn 1,1:", net.recall(trainSet[3][0]))
+        if i % 100 == 0:
+            print("EPOCH:", i + 1)
+            print("Error:", err)
+            print("========================")
+
+    # net.print_net()
+
+    # graph
+
+    fig, axs = plt.subplots(1, 1)
+    axs.plot(epoch, rms)
+    axs.set_xlabel('Epoch')
+    axs.set_ylabel('Error')
+    axs.grid(True)
+    plt.show()
+
+
+
+    print("After learn "+str(trainSet[0][1])+" :", np.round(net.recall(trainSet[0][0])))
+    print("After learn "+str(trainSet[55][1])+" :", np.round(net.recall(trainSet[55][0])))
+    print("After learn "+str(trainSet[107][1])+" :", np.round(net.recall(trainSet[107][0])))
+    print("After learn "+str(trainSet[142][1])+" :", np.round(net.recall(trainSet[142][0])))
