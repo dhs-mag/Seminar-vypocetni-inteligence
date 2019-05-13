@@ -1,6 +1,8 @@
 import locale
 
 import csv
+import os
+
 import numpy as np
 from PIL import Image, ImageDraw
 
@@ -14,7 +16,7 @@ def sigmoida(phi):
     return np.round(1.0 / (1.0 + np.exp(-phi)), 15)
 
 speed = 0.5 #rychlost učení
-inertia = 0.1 #setrvačnost
+inertia = 0.0000001 #setrvačnost
 
 class Percepton:
     def __init__(self, num_outputs, num_inputs, activation):
@@ -106,8 +108,8 @@ class Net:
 
     def netInit(self, randon_range_min, randon_range_max):
         self.layers = []
-        self.layers.append(Percepton(4, 4, sigmoida))
-        self.layers.append(Percepton(3, 4, sigmoida))
+        self.layers.append(Percepton(25, 25, sigmoida))
+        self.layers.append(Percepton(19, 25, sigmoida))
         self.output = self.layers[1]
         for l in self.layers:
             l.init(randon_range_min, randon_range_max)
@@ -180,7 +182,7 @@ if __name__ == "__main__":
     net.netInit(-0.3, 0.3)
 
 
-    filename = 'iris.data'
+    filename = 'imgs.data'
     raw_data = open(filename, 'rt')
     reader = csv.reader(raw_data, delimiter=',', quoting=csv.QUOTE_NONE)
     x = list(reader)
@@ -189,19 +191,21 @@ if __name__ == "__main__":
 
     for item in x:
         if len(item) > 0:
+            label = list(item[1])
+            label = np.array(label, dtype=np.float)
+
+            path = os.path.join("./imgs/", item[0])
+            img = Image.open(path)
+            img = img.convert('L')
+            img = img.resize((5, 5), Image.ANTIALIAS)
+            img = np.array(img, dtype=np.float)
+            img = np.concatenate(img)
+            img = normalize(img, 0, 255)
+
             trainSet.append(
                       [
-                          np.array([
-                              normalize(float(item[0]), 4.3, 7.9),
-                              normalize(float(item[1]), 2, 4.4),
-                              normalize(float(item[2]), 1, 6.9),
-                              normalize(float(item[3]), 0.1, 2.5)
-                          ]),
-                          np.array([
-                              1 if item[4] == "Iris-virginica" else 0,
-                              1 if item[4] == "Iris-versicolor" else 0,
-                              1 if item[4] == "Iris-setosa" else 0
-                          ])
+                          img,
+                          label
                       ])
 
 
@@ -217,7 +221,7 @@ if __name__ == "__main__":
     epoch = []
     avgErr = 0
     err = 0
-    for i in range(10000):
+    for i in range(2000):
         avgErr = 0
         net.epochStart()
         for pat in trainSet:
@@ -253,6 +257,10 @@ if __name__ == "__main__":
 
 
     print("After learn "+str(trainSet[0][1])+" :", np.round(net.recall(trainSet[0][0])))
-    print("After learn "+str(trainSet[55][1])+" :", np.round(net.recall(trainSet[55][0])))
-    print("After learn "+str(trainSet[107][1])+" :", np.round(net.recall(trainSet[107][0])))
-    print("After learn "+str(trainSet[142][1])+" :", np.round(net.recall(trainSet[142][0])))
+    print("After learn "+str(trainSet[2][1])+" :", np.round(net.recall(trainSet[2][0])))
+    print("After learn "+str(trainSet[9][1])+" :", np.round(net.recall(trainSet[9][0])))
+    print("After learn "+str(trainSet[15][1])+" :", np.round(net.recall(trainSet[15][0])))
+
+    # path = os.path.join("./imgs/", "stickman.png")
+    # img = Image.open(path)
+    # img = img.convert('L')
