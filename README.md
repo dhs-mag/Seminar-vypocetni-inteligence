@@ -1,1 +1,0 @@
-# Seminar-vypocetni-inteligence
