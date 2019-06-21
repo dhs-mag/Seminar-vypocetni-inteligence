@@ -33,21 +33,21 @@ def parse_image(url, width, height):
     return image
 
 
-# def get_image_window(image, column_param, height_param, size):
-#     result = np.zeros((size, size))
-#     c = 0
-#     r = 0
-#
-#     image_array = parse_image(image[0], image[1], image[2])
-#
-#     for row in range(height_param, height_param + size):
-#         r = 0
-#         for column in range(column_param, column_param + size):
-#             result[c][r] = image_array[row][column]
-#             r += 1
-#         c += 1
-#
-#     return np.array(result)
+def get_image_window(image, column_param, height_param, size):
+    result = np.zeros((size, size))
+    c = 0
+    r = 0
+
+    image_array = parse_image(image[0], image[1], image[2])
+
+    for row in range(height_param, height_param + size):
+        r = 0
+        for column in range(column_param, column_param + size):
+            result[c][r] = image_array[row][column]
+            r += 1
+        c += 1
+
+    return np.array(result)
 
 
 def task_xor():
@@ -245,37 +245,44 @@ def task_draw():
         print("After learn    :" + str(np.round(net.feed_forward(training_set[i][0]))))
         print("========================")
 
-    # img_url = "./imgs/260x445.png"
-    # width = 260
-    # height = 445
+    img_url = "./imgs/90x105.png"
+    width = 90
+    height = 105
 
     # loading character
-    # character_array = parse_image(img_url, width, height)
-    #
+    character_array = parse_image(img_url, width, height)
+
     # # blank image file
-    # result_image = Image.new('RGB', (width, height), (255, 255, 255))
-    #
-    # window = 5
-    #
-    # preview_image = Image.open(img_url)
-    # preview_scan_window = Image.new('RGB', (window, window), (0, 255, 0))
-    #
-    # for row in range(0, (height - (window - 1)), 1):
-    #     for column in range(0, (width - (window - 1)), 1):
-    #         # get image
-    #         img = get_image_window(["./imgs/260x445.png", 260, 445], column, row, window)
-    #         img2 = np.round(np.concatenate(img))
-    #         img2 = normalize(img2, 0, 255)
-    #
-    #         # get net result
-    #         net_result = net.feed_forward(img2)
-    #         net_max = max(net_result)
-    #         result = [i for i, j in enumerate(net_result) if j == net_max]
-    #
-    #         if len(result) > 0:
-    #
-    #             if result[0] != 0:
-    #                 result_image.paste(Image.open("./imgs/" + str(result[0]) + ".png"), (column, row))
+    result_image = Image.new('RGB', (width, height), (255, 255, 255))
+
+    scan_window = 5
+
+    preview_image = Image.open(img_url)
+    preview_scan_window = Image.new('RGB', (scan_window, scan_window), (0, 255, 0))
+
+    print("Drawing Image")
+    for row in range(0, (height - (scan_window - 1)), 1):
+        for column in range(0, (width - (scan_window - 1)), 1):
+
+            # get image
+            img = get_image_window(["./imgs/90x105.png", 90, 105], column, row, scan_window)
+            img2 = np.round(np.concatenate(img))
+            img2 = normalize(img2, 0, 255)
+
+            # get net result
+            net_result = net.feed_forward(img2)
+            net_max = max(net_result)
+            result = [i for i, j in enumerate(net_result) if j == net_max]
+
+            if len(result) > 0:
+
+                if result[0] != 0:
+                    result_image.paste(Image.open("./imgs/" + str(result[0]) + ".png"), (column, row))
+    result_image.save('./imgs/out.png')
+
+    print("Opening Image")
+    imgshow = Image.open('./imgs/out.png')
+    imgshow.show()
 
 
 if __name__ == "__main__":
