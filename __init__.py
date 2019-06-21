@@ -245,20 +245,13 @@ def task_draw():
         print("After learn    :" + str(np.round(net.feed_forward(training_set[i][0]))))
         print("========================")
 
-    img_url = "./imgs/90x105.png"
     width = 90
     height = 105
 
-    # loading character
-    character_array = parse_image(img_url, width, height)
-
-    # # blank image file
+    # new image file
     result_image = Image.new('RGB', (width, height), (255, 255, 255))
 
     scan_window = 5
-
-    preview_image = Image.open(img_url)
-    preview_scan_window = Image.new('RGB', (scan_window, scan_window), (0, 255, 0))
 
     print("Drawing Image")
     for row in range(0, (height - (scan_window - 1)), 1):
