@@ -207,11 +207,13 @@ def task_draw():
     # Graph helper
     epoch_array = []
     error_array = []
+
     average_error = 0
     total_error = 0
     learning_speed = 0.05
     inertia = 0.5
     epochs = 5000
+
     for i in range(epochs):
         average_error = 0
         net.epoch_start()
