@@ -136,7 +136,7 @@ def task_iris():
     total_error = 0
     learning_speed = 0.05
     inertia = 0.3
-    epochs = 10000
+    epochs = 5000
     for i in range(epochs):
 
         average_error = 0

@@ -38,10 +38,20 @@ class Network:
     def learn(self, input_array, desired_output):
         self.feed_forward(input_array)
         error = self.layers[len(self.layers) - 1].output_delta(desired_output)
-        self.layers[1].learn_perceptron(self.layers[0].outputs)
-        self.layers[1].back_propagate(self.layers[0])
+
+        array_size = len(self.layers)
+
+        for i in range(array_size - 1, 0, -1):
+            if 1 <= i <= array_size:
+                self.layers[i].learn_perceptron(self.layers[i - 1].outputs)
+                self.layers[i].back_propagate(self.layers[i - 1])
         self.layers[0].learn_perceptron(input_array)
         return error
+
+        # self.layers[1].learn_perceptron(self.layers[0].outputs)
+        # self.layers[1].back_propagate(self.layers[0])
+        # self.layers[0].learn_perceptron(input_array)
+        # return error
 
     def epoch_finish(self, speed, inertia):
         for layer in self.layers:
