@@ -48,11 +48,6 @@ class Network:
         self.layers[0].learn_perceptron(input_array)
         return error
 
-        # self.layers[1].learn_perceptron(self.layers[0].outputs)
-        # self.layers[1].back_propagate(self.layers[0])
-        # self.layers[0].learn_perceptron(input_array)
-        # return error
-
     def epoch_finish(self, speed, inertia):
         for layer in self.layers:
             layer.epoch_finish_perceptron(speed, inertia)
