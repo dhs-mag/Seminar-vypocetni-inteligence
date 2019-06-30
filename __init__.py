@@ -50,6 +50,20 @@ def get_image_window(image, column_param, height_param, size):
     return np.array(result)
 
 
+def make_transparent(img):
+    img = img.convert("RGBA")
+    datas = img.getdata()
+    newData = []
+    for item in datas:
+        if item[0] == 255 and item[1] == 255 and item[2] == 255:
+            newData.append((255, 255, 255, 0))
+        else:
+            newData.append(item)
+
+    img.putdata(newData)
+    return img
+
+
 def task_xor():
     net.initialize_network([Perceptron(2, 2, sigmoid), Perceptron(2, 1, sigmoid)], -0.3, 0.3)
 
@@ -247,8 +261,8 @@ def task_draw():
         print("After learn    :" + str(np.round(net.feed_forward(training_set[i][0]))))
         print("========================")
 
-    width = 90
-    height = 105
+    width = 260
+    height = 445
 
     # new image file
     result_image = Image.new('RGB', (width, height), (255, 255, 255))
@@ -260,7 +274,7 @@ def task_draw():
         for column in range(0, (width - (scan_window - 1)), 1):
 
             # get image
-            img = get_image_window(["./imgs/90x105.png", 90, 105], column, row, scan_window)
+            img = get_image_window(["./imgs/260x445.png", width, height], column, row, scan_window)
             img2 = np.round(np.concatenate(img))
             img2 = normalize(img2, 0, 255)
 
@@ -272,7 +286,8 @@ def task_draw():
             if len(result) > 0:
 
                 if result[0] != 0:
-                    result_image.paste(Image.open("./imgs/" + str(result[0]) + ".png"), (column, row))
+                    temp_result_img = Image.open("./imgs/" + str(result[0]) + ".png")
+                    result_image.paste(make_transparent(temp_result_img), (column, row))
     result_image.save('./imgs/out.png')
 
     print("Opening Image")
