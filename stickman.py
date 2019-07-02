@@ -1,3 +1,5 @@
+import colorsys
+import math
 import random
 import statistics
 import sys
@@ -55,6 +57,26 @@ def verifyNetwork(printStats = False):
 
     return successCount
 
+def convertColors(sourceImg, imageType):
+    datas = sourceImg.getdata()
+    newData = []
+    for item in datas:
+        if item[0] == 255 and item[1] == 255 and item[2] == 255:
+            newData.append((255, 255, 255, 0))
+        else:
+
+            # newData.append((0, 0, 0, 100))
+
+            rgb = colorsys.hsv_to_rgb((1.0 / NUMBER_OF_IMAGES) * imageType, 1.0, 0.5)
+            newData.append((
+                math.floor(rgb[0] * 255),
+                math.floor(rgb[1] * 255),
+                math.floor(rgb[2] * 255),
+                127))
+
+    sourceImg.putdata(newData)
+    return sourceImg
+
 
 if __name__ == "__main__":
 
@@ -82,7 +104,8 @@ if __name__ == "__main__":
     meanErrorInEpochs = []
     successCountInEpochs = []
 
-    for epoch in range(300):
+
+    for epoch in range(500):
 
         #epoch
 
@@ -129,11 +152,13 @@ if __name__ == "__main__":
 
     # STICKMAN PROCESSING
 
-    print("\nProcessing stickman\n-------------------------")
+    print("\n\nProcessing stickman\n-------------------------")
 
     stickmanData = imageToMatrix("images/test/stickman.png")
 
     results = np.zeros((stickmanData.shape[0] - SAMPLE_SIZE, stickmanData.shape[1] - SAMPLE_SIZE))
+
+    resultImage = Image.new('RGB', (stickmanData.shape[1], stickmanData.shape[0]), (255, 255, 255))
 
     for y in range(stickmanData.shape[0] - SAMPLE_SIZE):
         for x in range(stickmanData.shape[1] - SAMPLE_SIZE):
@@ -141,15 +166,30 @@ if __name__ == "__main__":
             sampleSubmatrix = stickmanData[y:y + SAMPLE_SIZE, x:x + SAMPLE_SIZE]
             sampleList = np.asarray(sampleSubmatrix).reshape(-1).tolist()
 
+            #recall in neural network
             recall = network.recall(sampleList)
             detectedImageType = recall.index(max(recall))
             results[y,x] = detectedImageType
 
+            # process result image
+            resultPatch = Image.open("images/" + str(detectedImageType).rjust(2, '0') + ".png").convert("RGBA")
+            resultPatch = convertColors(resultPatch, detectedImageType)
+
+            resultImage.paste(resultPatch, (x, y), resultPatch)  # third arg to achieve transparency
+
             sys.stdout.write("\rProcessing Y: %d\t X: %d\t => Detected:\t%d" % (y, x, detectedImageType))
             sys.stdout.flush()
 
+    # save and plot image
 
+    resultImage.save("result.png","PNG")
 
-    pass;
+    dpi = 80.0
+    xpixels, ypixels = stickmanData.shape[0], stickmanData.shape[1]
+
+    fig = plt.figure(figsize=(ypixels / dpi, xpixels / dpi), dpi=dpi)
+    fig.figimage(resultImage)
+    plt.show()
+
 
 
