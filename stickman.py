@@ -1,5 +1,6 @@
 import random
 import statistics
+import sys
 
 import numpy as np
 from PIL import Image
@@ -23,7 +24,7 @@ def verifyNetwork(printStats = False):
     successCount = 0
 
     if (printStats):
-        print("IMG\tDET\tSUCCESS\tMEAN ERROR\tRAW RESPONSE\n---------------")
+        print("\n\nIMG\tDET\tOK\tMEAN ERROR\tRAW RESPONSE\n---------------------------------------")
 
     for i in range(NUMBER_OF_IMAGES):
         response = network.classifyOut(trainingImages[i])
@@ -36,7 +37,10 @@ def verifyNetwork(printStats = False):
             successCount += 1
 
         if (printStats):
-            print("%d\t%d\t%s\t%f\t%s" % (i, detectedImageType, success, meanError, response))
+            print("%d\t%d\t%s\t%f\t%s" % (i, detectedImageType, "✔" if success else "❎", meanError, response))
+
+    if (printStats):
+        print("---------------------------------------\n")
 
     return successCount
 
@@ -65,11 +69,10 @@ if __name__ == "__main__":
     meanErrorInEpochs = []
     successCountInEpochs = []
 
-    for epoch in range(300):
+    for epoch in range(1000):
 
         #epoch
 
-        print("Epoch %d, error:\t" % (epoch), end="")
 
         randomizedImages = [i for i in range(NUMBER_OF_IMAGES)]
         random.shuffle(randomizedImages)
@@ -81,7 +84,12 @@ if __name__ == "__main__":
 
         epochMeanError = errorSum / len(randomizedImages)
         meanErrorInEpochs.append(epochMeanError)
-        print(epochMeanError)
+
+
+
+        # if epoch % 10 == 0:
+        sys.stdout.write("\rEpoch %d, error:\t%f" % (epoch, epochMeanError))
+        sys.stdout.flush()
 
         successCountInEpochs.append(verifyNetwork(epoch % 100 == 0))
 
@@ -101,6 +109,7 @@ if __name__ == "__main__":
     par1.yaxis.label.set_color(p2.get_color())
 
     par1.set_yticks(np.arange(0, NUMBER_OF_IMAGES+1, 1.0), minor=False)
+    host.grid()
 
     plt.show()
 
