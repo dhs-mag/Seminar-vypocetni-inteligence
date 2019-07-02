@@ -4,6 +4,8 @@ import statistics
 import numpy as np
 from PIL import Image
 
+import matplotlib.pyplot as plt
+
 # convert image to 1D array (scanning left to right) of 0s and 1s
 from NeuralNetwork import NeuralNetwork
 
@@ -16,8 +18,13 @@ def imageToArray(src):
     return np.asarray(np_img).reshape(-1).tolist()
 
 
-def verifyNetwork():
-    print("IMG\tDET\tSUCCESS\tMEAN ERROR\tRAW RESPONSE\n---------------")
+def verifyNetwork(printStats = False):
+
+    successCount = 0
+
+    if (printStats):
+        print("IMG\tDET\tSUCCESS\tMEAN ERROR\tRAW RESPONSE\n---------------")
+
     for i in range(NUMBER_OF_IMAGES):
         response = network.classifyOut(trainingImages[i])
         detectedImageType = response.index(max(response))
@@ -25,7 +32,13 @@ def verifyNetwork():
         success = (detectedImageType == i)
         meanError = statistics.mean([response[x] - correctResults[i][x] for x in range(NUMBER_OF_IMAGES)])
 
-        print("%d\t%d\t%s\t%f\t%s" % (i, detectedImageType, success, meanError, response))
+        if (success):
+            successCount += 1
+
+        if (printStats):
+            print("%d\t%d\t%s\t%f\t%s" % (i, detectedImageType, success, meanError, response))
+
+    return successCount
 
 
 if __name__ == "__main__":
@@ -49,8 +62,10 @@ if __name__ == "__main__":
 
     network.randomizeWeights()
 
+    meanErrorInEpochs = []
+    successCountInEpochs = []
 
-    for epoch in range(1000):
+    for epoch in range(300):
 
         #epoch
 
@@ -65,11 +80,29 @@ if __name__ == "__main__":
             errorSum += network.learnBPROP(trainingImages[imageUnderTest], correctResults[imageUnderTest], LEARN_SPEED, MOMENTUM)
 
         epochMeanError = errorSum / len(randomizedImages)
+        meanErrorInEpochs.append(epochMeanError)
         print(epochMeanError)
 
-        if epoch % 100 == 0:
-            verifyNetwork()
+        successCountInEpochs.append(verifyNetwork(epoch % 100 == 0))
 
+    verifyNetwork()
+
+    fig, host = plt.subplots()
+    par1 = host.twinx()
+
+    p1, = host.plot(meanErrorInEpochs, "r-", label="Mean Error")
+    p2, = par1.plot(successCountInEpochs, "g-", label="Success count")
+
+    host.set_xlabel("Epoch number")
+    host.set_ylabel("Mean error")
+    par1.set_ylabel("Number of successfully recognized images")
+
+    host.yaxis.label.set_color(p1.get_color())
+    par1.yaxis.label.set_color(p2.get_color())
+
+    par1.set_yticks(np.arange(0, NUMBER_OF_IMAGES+1, 1.0), minor=False)
+
+    plt.show()
 
     pass;
 

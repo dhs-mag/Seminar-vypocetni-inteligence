@@ -183,7 +183,7 @@ class NeuralNetwork:
         self.plus(self.weights1, self.dWeights1, momentum)
         self.dWeights1 = dWeights
 
-        return statistics.mean([expectedOutput[i]-outputLayer3[i] for i in range(self.nOutput)])
+        return statistics.mean([outputLayer3[i]-expectedOutput[i] for i in range(self.nOutput)])
 
     #
     #Matrix addition, with multiplicator of added values.
