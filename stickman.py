@@ -7,11 +7,14 @@ from PIL import Image
 
 import matplotlib.pyplot as plt
 
-# convert image to 1D array (scanning left to right) of 0s and 1s
 from ThreeLayerNeuralNetwork import ThreeLayerNeuralNetwork
+from TwoLayerNeuralNetwork import TwoLayerNeuralNetwork
 
 
 def imageToArray(src):
+    """
+    Convert image to 1D array (scanning left to right) of 0s and 1s
+    """
     img = Image.open(src).convert('L')
     np_img = np.matrix(img)
     np_img = ~np_img
@@ -57,7 +60,8 @@ if __name__ == "__main__":
     correctResults = np.asarray(np.identity(NUMBER_OF_IMAGES)).tolist()
 
     # initialize network
-    network = ThreeLayerNeuralNetwork(IMAGE_RESOLUTION, 25, 25, NUMBER_OF_IMAGES)
+    # network = ThreeLayerNeuralNetwork(IMAGE_RESOLUTION, 25, 25, NUMBER_OF_IMAGES)
+    network = TwoLayerNeuralNetwork(IMAGE_RESOLUTION, 25, NUMBER_OF_IMAGES)
 
     #training
 
