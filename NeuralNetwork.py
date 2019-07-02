@@ -6,6 +6,9 @@ import math
 #Universal MLP feed-forward neural network with two hidden layers.
 #
 #
+import statistics
+
+
 class NeuralNetwork:
 
      #  nLayer1, nLayer2
@@ -17,13 +20,13 @@ class NeuralNetwork:
     #@param nLayer2 Number of neurons in second hidden layer
     #@param nInput Number of inputs - how many image features are there
     #@param nOutput Number of outputs - how many image classes we want to detect
-    def __init__(self, nLayer1,  nLayer2,  nInput,  nOutput):
+    def __init__(self, nInput, nLayer1,  nLayer2,  nOutput):
         self.GAMMA = 1.0
 
+        self.nInput = nInput
         self.nLayer1 = nLayer1
         self.nLayer2 = nLayer2
         self.nOutput = nOutput
-        self.nInput = nInput
         self.weights1 = [[0 for i in range(nLayer1)] for j in range(nInput+1)]
         self.weights2 = [[0 for i in range(nLayer2)] for j in range(nLayer1+1)]
         self.weights3 = [[0 for i in range(nOutput)] for j in range(nLayer2+1)]
@@ -103,7 +106,7 @@ class NeuralNetwork:
     #
     def processLayer(self, input, outputLayer, weights):
         for i in range(len(outputLayer)):
-            outputLayer[i] = weights[input.length][i]
+            outputLayer[i] = weights[len(input)][i]
 
             for j in range(len(input)):
                 outputLayer[i]+= input[j]* weights[j][i]
@@ -118,69 +121,69 @@ class NeuralNetwork:
     #@param outputData Array of expected (desired) outupt data vectors
     #@param learnSpeed Learning speeed, optimal is about 0.2
     #@param momentum Learning momentum, optimal is about 0.8
+    #@return mean error
     #
-    def learnBPROP(self, inputData, outputData, learnSpeed, momentum):
-        for iData in range(len(inputData)):
-            input = inputData[iData]
-            expectedOutput = outputData[iData]
-            outputLayer1 = [0 for i in range(self.nLayer1)]
-            outputLayer2 = [0 for i in range(self.nLayer2)]
+    def learnBPROP(self, input, expectedOutput, learnSpeed, momentum):
+        outputLayer1 = [0 for i in range(self.nLayer1)]
+        outputLayer2 = [0 for i in range(self.nLayer2)]
 
-            # spocitame aktualni vystup neuronove site pro trenovaci tada
-            outputLayer3 = self.classify(input, outputLayer1, outputLayer2)
+        # spocitame aktualni vystup neuronove site pro trenovaci tada
+        outputLayer3 = self.classify(input, outputLayer1, outputLayer2)
 
-            # VYSTUPNI VRSTVA
-            delta = [self.GAMMA * (outputLayer3[i]*(1-outputLayer3[i])*(expectedOutput[i]-outputLayer3[i])) for i in range(self.nOutput)]
+        # VYSTUPNI VRSTVA
+        delta = [self.GAMMA * (outputLayer3[i]*(1-outputLayer3[i])*(expectedOutput[i]-outputLayer3[i])) for i in range(self.nOutput)]
 
-            dWeights = [[learnSpeed*delta[j]*outputLayer2[i] for i in range(self.nOutput)] for j in range(self.nLayer2+1)]
+        dWeights = [[learnSpeed*delta[j]*outputLayer2[i] for j in range(self.nOutput)] for i in range(self.nLayer2)]
 
+        dWeights.append([learnSpeed*delta[j] for j in range(self.nOutput)])
+
+        # for j in range(self.nOutput):
+        #     dWeights[self.nLayer2][j] = learnSpeed*delta[j]
+
+        self.plus(self.weights3, dWeights, 1.0)
+        self.plus(self.weights3, self.dWeights3, momentum)
+        self.dWeights3 = dWeights
+
+        # DRUHA SKRYA VRSTVA
+
+        # 𝑛Σ︁𝑜𝑢𝑡_𝑗=1 𝛿^𝑜𝑢𝑡_𝑘 𝑤^𝑜𝑢𝑡_𝑘𝑗
+        sum = [0.0 for i in range(self.nLayer2)]
+        for i in range(self.nLayer2):
             for j in range(self.nOutput):
-                dWeights[self.nLayer2][j] = learnSpeed*delta[j]
+                sum[i]+= delta[j] * self.weights3[i][j]
 
-            self.plus(self.weights3, dWeights, 1.0)
-            self.plus(self.weights3, self.dWeights3, momentum)
-            self.dWeights3 = dWeights
+        # 𝛿^ℎ2_𝑘 = 𝛾 · 𝑦^ℎ2_𝑘 · (1 − 𝑦^ℎ2_𝑘 ) · (𝑛_𝑜𝑢𝑡Σ︁_𝑗=1 𝛿^𝑜𝑢𝑡_𝑘 𝑤^𝑜𝑢𝑡_𝑘𝑗 )
+        delta = [self.GAMMA*(outputLayer2[i]*(1-outputLayer2[i])*sum[i]) for i in range(self.nLayer2)]
 
-            # DRUHA SKRYA VRSTVA
+        # Δ𝑤^ℎ2_𝑖𝑘 = 𝜂 · 𝛿^ℎ2_𝑘 · 𝑦^ℎ1_𝑖
+        dWeights = [[learnSpeed*delta[j]*outputLayer1[i] for j in range(self.nLayer2)] for i in range(self.nLayer1)]
 
-            # 𝑛Σ︁𝑜𝑢𝑡_𝑗=1 𝛿^𝑜𝑢𝑡_𝑘 𝑤^𝑜𝑢𝑡_𝑘𝑗
-            sum = [0.0 for i in range(self.nLayer2)]
-            for i in range(self.nLayer2):
-                for j in range(self.nOutput):
-                    sum[i]+= delta[j] * self.weights3[i][j]
+        # update bias weight
+        dWeights.append([learnSpeed * delta[j] for j in range(self.nLayer2)])
 
-            # 𝛿^ℎ2_𝑘 = 𝛾 · 𝑦^ℎ2_𝑘 · (1 − 𝑦^ℎ2_𝑘 ) · (𝑛_𝑜𝑢𝑡Σ︁_𝑗=1 𝛿^𝑜𝑢𝑡_𝑘 𝑤^𝑜𝑢𝑡_𝑘𝑗 )
-            delta = [self.GAMMA*(outputLayer2[i]*(1-outputLayer2[i])*sum[i]) for i in range(self.nLayer2)]
+        # 𝑤^ℎ2_𝑖𝑘 ← 𝑤^ℎ2_𝑖𝑘 + Δ𝑤^ℎ2_𝑖𝑘(𝑡) + 𝛼Δ𝑤^ℎ2_𝑖𝑘(𝑡 − 1)
+        self.plus(self.weights2, dWeights, 1.0)
+        self.plus(self.weights2, self.dWeights2, momentum)
+        self.dWeights2 = dWeights
 
-            # Δ𝑤^ℎ2_𝑖𝑘 = 𝜂 · 𝛿^ℎ2_𝑘 · 𝑦^ℎ1_𝑖
-            dWeights = [[learnSpeed*delta[j]*outputLayer1[i] for i in range(self.nLayer2)] for j in range(self.nLayer1 + 1)]
+        # PRVNI SKRYTA VRSTVA
 
-            # ??
+        sum = [0.0 for i in range(self.nLayer1)]
+        for i in range(self.nLayer1):
             for j in range(self.nLayer2):
-                dWeights[self.nLayer1][j] = learnSpeed*delta[j]
+                sum[i]+= delta[j] * self.weights2[i][j]
 
-            # 𝑤^ℎ2_𝑖𝑘 ← 𝑤^ℎ2_𝑖𝑘 + Δ𝑤^ℎ2_𝑖𝑘(𝑡) + 𝛼Δ𝑤^ℎ2_𝑖𝑘(𝑡 − 1)
-            self.plus(self.weights2, dWeights, 1.0)
-            self.plus(self.weights2, self.dWeights2, momentum)
-            self.dWeights2 = dWeights
+        delta = [self.GAMMA*(outputLayer1[i]*(1-outputLayer1[i])*sum[i]) for i in range(self.nLayer1)]
 
-            # PRVNI SKRYTA VRSTVA
+        dWeights = [[learnSpeed * delta[j] * input[i] for j in range(self.nLayer1)] for i in range(self.nInput)]
 
-            sum = [0.0 for i in range(self.nLayer1)]
-            for i in range(self.nLayer1):
-                for j in range(self.nLayer2):
-                    sum[i]+= delta[j] * self.weights2[i][j]
+        dWeights.append([learnSpeed * delta[j] for j in range(self.nLayer1)])
 
-            delta = [self.GAMMA*(outputLayer1[i]*(1-outputLayer1[i])*sum[i]) for i in range(self.nLayer1)]
+        self.plus(self.weights1, dWeights, 1.0)
+        self.plus(self.weights1, self.dWeights1, momentum)
+        self.dWeights1 = dWeights
 
-            dWeights = [[learnSpeed * delta[j] * input[i] for i in range(self.nLayer1)] for j in range(self.nInput + 1)]
-
-            for j in range(self.nLayer1):
-                dWeights[self.nInput][j] = learnSpeed * delta[j]
-
-            self.plus(self.weights1, dWeights, 1.0)
-            self.plus(self.weights1, self.dWeights1, momentum)
-            self.dWeights1 = dWeights
+        return statistics.mean([expectedOutput[i]-outputLayer3[i] for i in range(self.nOutput)])
 
     #
     #Matrix addition, with multiplicator of added values.
