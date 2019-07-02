@@ -2,20 +2,21 @@
 import random
 import math
 
-#
-#Universal MLP feed-forward neural network with two hidden layers.
-#
-#
 import statistics
 
 
 class ThreeLayerNeuralNetwork:
+    """
+    Universal MLP feed-forward neural network with two hidden layers.
 
-    #@param nLayer1 Number of neurons in first hidden layer
-    #@param nLayer2 Number of neurons in second hidden layer
-    #@param nInput Number of inputs - how many image features are there
-    #@param nOutput Number of outputs - how many image classes we want to detect
-    def __init__(self, nInput, nLayer1,  nLayer2,  nOutput):
+    Args:
+        nLayer1: Number of neurons in first hidden layer
+        nLayer2: Number of neurons in second hidden layer
+        nInput: Number of inputs - how many features are there
+        nOutput: Number of outputs - how many classes we want to detect
+    """
+
+    def __init__(self, nInput, nLayer1, nLayer2, nOutput):
         self.GAMMA = 1.0
 
         self.nInput = nInput
@@ -29,101 +30,100 @@ class ThreeLayerNeuralNetwork:
         self.dWeights2 = [[0 for i in range(nLayer2)] for j in range(nLayer1+1)]
         self.dWeights3 = [[0 for i in range(nOutput)] for j in range(nLayer2+1)]
 
-    #Return current weights of the neural network.
-    #Usefull for storing state.
-    def exportWeights(self):
-        return (self.weights1, self.weights2, self.weights3)
-
-    #
-    #Set weights of the neural network.#
-    #Usefull for restoring state.
-    #
-    #@param weights
-    #
-    def importWeights(self, weights):
-        self.weights1 = weights[0]
-        self.weights2 = weights[1]
-        self.weights3 = weights[2]
-
-    #
-    #Randomize weights, use before training.
-    #
     def randomizeWeights(self):
+        """
+        Randomize weights, use before training.
+        """
         self.randomizeWeightsMatrix(self.weights1)
         self.randomizeWeightsMatrix(self.weights2)
         self.randomizeWeightsMatrix(self.weights3)
 
-    #
-    #Randomize weights matrix.
-    #
-    #Individual elements will be random valued from erval <-1,1>
-    #
-    #@param weights Matrix to be randomized.
-    #
-    def randomizeWeightsMatrix(self, weights):
 
+    def randomizeWeightsMatrix(self, weights):
+        """
+        Randomize weights matrix.
+
+        Individual elements will be random valued from interval <-1,1>
+
+        Args:
+            weights: Matrix to be randomized.
+        """
         for i in range(len(weights)):
             for j in range(len(weights[i])):
-                weights[i][j] = 1.0 - 2.0 * random.uniform(0, 1)
+                weights[i][j] = random.uniform(-1.0, 1.0)
 
-    #
-    #Performs classsification - data transit throughout the neural network.
-    #
-    #@param input Input data vector
-    #@return Output vector
-    #
-    def classifyOut(self, input):
+    def recall(self, input):
+        """
+        Performs recall.
+
+        Args:
+            input: Input data vector
+
+        Returns:
+            Output vector
+        """
         outputLayer1 = [0 for i in range(self.nLayer1)]
         outputLayer2 = [0 for i in range(self.nLayer2)]
-        return self.classify(input, outputLayer1, outputLayer2)
+        return self.recallProcess(input, outputLayer1, outputLayer2)
 
-    #
-    #Performs classsification - data transit throughout the neural network.
-    #
-    #@param input Input data vector
-    #@param outputLayer1 Vector of first hidden layer
-    #@param outputLayer2 Vector of second hidden layer
-    #@return Output vector
-    #
-    def classify(self, input, outputLayer1, outputLayer2):
+    def recallProcess(self, input, outputLayer1, outputLayer2):
+        """
+        Performs recall using supplied intermediate vectors.
+
+        Args:
+            input: Input data vector
+            outputLayer1: Vector of first hidden layer (out)
+            outputLayer2: Vector of second hidden layer (out)
+
+        Returns:
+            Output vector
+        """
         output = [0 for i in range(self.nOutput)]
         self.processLayer(input, outputLayer1, self.weights1)
         self.processLayer(outputLayer1, outputLayer2, self.weights2)
         self.processLayer(outputLayer2, output, self.weights3)
         return output
 
-    #
-    #Process data tranist from one neural layer to another.
-    #
-    #@param input Input layer data vector.
-    #@param outputLayer Output layer data vector.
-    #@param weights Weights between layer vectors, weights matrix.
-    #
     def processLayer(self, input, outputLayer, weights):
+        """
+        Process data transit from one neural layer to another.
+
+        Args:
+            input: Input layer data vector.
+            outputLayer: Output layer data vector.
+            weights: Weights between layer vectors, weights matrix.
+
+        """
+
         for i in range(len(outputLayer)):
-            outputLayer[i] = weights[len(input)][i]
+            # process virtual bias input
+            outputLayer[i] = 1.0 * weights[len(input)][i]
 
             for j in range(len(input)):
-                outputLayer[i]+= input[j]* weights[j][i]
+                outputLayer[i] += input[j] * weights[j][i]
 
-            outputLayer[i]*= -self.GAMMA;
+            outputLayer[i] *= -self.GAMMA
             outputLayer[i] = 1.0/(1.0 + math.exp(outputLayer[i]))
 
-    #
-    #Train neural network using backpropagation method.
-    #
-    #@param inputData Array of input data vectors
-    #@param outputData Array of expected (desired) outupt data vectors
-    #@param learnSpeed Learning speeed, optimal is about 0.2
-    #@param momentum Learning momentum, optimal is about 0.8
-    #@return mean error
-    #
-    def learnBPROP(self, input, expectedOutput, learnSpeed, momentum):
+    def learn(self, input, expectedOutput, learnSpeed, momentum):
+        """
+        Train neural network using back-propagation method.
+
+        Args:
+            input: Array of input data vectors
+            expectedOutput: Array of expected (desired) output data vectors
+            learnSpeed: Learning speed, optimal is about 0.2
+            momentum: Learning momentum, optimal is about 0.8
+
+        Returns:
+            Mean error of recall before training
+        """
+
         outputLayer1 = [0 for i in range(self.nLayer1)]
         outputLayer2 = [0 for i in range(self.nLayer2)]
 
-        # spocitame aktualni vystup neuronove site pro trenovaci tada
-        outputLayer3 = self.classify(input, outputLayer1, outputLayer2)
+        # test recall
+        outputLayer3 = self.recallProcess(input, outputLayer1, outputLayer2)
 
         # VYSTUPNI VRSTVA
         delta = [self.GAMMA * (outputLayer3[i]*(1-outputLayer3[i])*(expectedOutput[i]-outputLayer3[i])) for i in range(self.nOutput)]
@@ -131,9 +131,6 @@ class ThreeLayerNeuralNetwork:
         dWeights = [[learnSpeed*delta[j]*outputLayer2[i] for j in range(self.nOutput)] for i in range(self.nLayer2)]
 
         dWeights.append([learnSpeed*delta[j] for j in range(self.nOutput)])
-
-        # for j in range(self.nOutput):
-        #     dWeights[self.nLayer2][j] = learnSpeed*delta[j]
 
         self.plus(self.weights3, dWeights, 1.0)
         self.plus(self.weights3, self.dWeights3, momentum)
@@ -180,16 +177,21 @@ class ThreeLayerNeuralNetwork:
 
         return statistics.mean([outputLayer3[i]-expectedOutput[i] for i in range(self.nOutput)])
 
-    #
-    #Matrix addition, with multiplicator of added values.
-    #
-    #Performs: A = A + (times * B)
-    #
-    #@param a Matrix A
-    #@param b Matrix B
-    #@param times Multiplicator
-    #
     def plus(self, a, b, times):
-       for i in range (len(a)):
-           for j in range(len(a[i])):
-               a[i][j]+= times * b[i][j]
+        """
+        Matrix addition, with multiplication of added values.
+
+        Performs: A = A + (times * B)
+
+        Args:
+            a: Matrix A
+            b: Matrix B
+            times: Multiplier
+
+        Returns:
+            Resulting matrix
+        """
+
+        for i in range (len(a)):
+            for j in range(len(a[i])):
+                a[i][j] += times * b[i][j]

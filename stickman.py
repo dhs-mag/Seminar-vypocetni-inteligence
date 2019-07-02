@@ -27,7 +27,7 @@ def verifyNetwork(printStats = False):
         print("\n\nIMG\tDET\tOK\tMEAN ERROR\tRAW RESPONSE\n---------------------------------------")
 
     for i in range(NUMBER_OF_IMAGES):
-        response = network.classifyOut(trainingImages[i])
+        response = network.recall(trainingImages[i])
         detectedImageType = response.index(max(response))
 
         success = (detectedImageType == i)
@@ -80,7 +80,7 @@ if __name__ == "__main__":
         errorSum = 0;
 
         for imageUnderTest in randomizedImages:
-            errorSum += network.learnBPROP(trainingImages[imageUnderTest], correctResults[imageUnderTest], LEARN_SPEED, MOMENTUM)
+            errorSum += network.learn(trainingImages[imageUnderTest], correctResults[imageUnderTest], LEARN_SPEED, MOMENTUM)
 
         epochMeanError = errorSum / len(randomizedImages)
         meanErrorInEpochs.append(epochMeanError)
