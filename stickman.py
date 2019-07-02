@@ -8,7 +8,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 
 # convert image to 1D array (scanning left to right) of 0s and 1s
-from NeuralNetwork import NeuralNetwork
+from ThreeLayerNeuralNetwork import ThreeLayerNeuralNetwork
 
 
 def imageToArray(src):
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     correctResults = np.asarray(np.identity(NUMBER_OF_IMAGES)).tolist()
 
     # initialize network
-    network = NeuralNetwork(IMAGE_RESOLUTION, 25, 25, NUMBER_OF_IMAGES)
+    network = ThreeLayerNeuralNetwork(IMAGE_RESOLUTION, 25, 25, NUMBER_OF_IMAGES)
 
     #training
 

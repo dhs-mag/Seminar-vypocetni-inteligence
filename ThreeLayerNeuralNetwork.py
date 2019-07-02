@@ -9,12 +9,7 @@ import math
 import statistics
 
 
-class NeuralNetwork:
-
-     #  nLayer1, nLayer2
-     #  nInput, nOutput
-     # double[][] weights1, weights2, weights3
-     # double[][] dWeights1, dWeights2, dWeights3
+class ThreeLayerNeuralNetwork:
 
     #@param nLayer1 Number of neurons in first hidden layer
     #@param nLayer2 Number of neurons in second hidden layer
