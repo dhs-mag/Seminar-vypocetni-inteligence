@@ -15,11 +15,19 @@ def imageToArray(src):
     """
     Convert image to 1D array (scanning left to right) of 0s and 1s
     """
+    return np.asarray(imageToMatrix(src)).reshape(-1).tolist()
+
+
+def imageToMatrix(src):
+    """
+    Convert image to 2D matrix of 0s and 1s
+    """
     img = Image.open(src).convert('L')
     np_img = np.matrix(img)
     np_img = ~np_img
-    np_img[np_img > 0] = 1
-    return np.asarray(np_img).reshape(-1).tolist()
+    np_img = np_img/255.0
+    # np_img[np_img > 0] = 1
+    return np_img
 
 
 def verifyNetwork(printStats = False):
@@ -51,7 +59,8 @@ def verifyNetwork(printStats = False):
 if __name__ == "__main__":
 
     NUMBER_OF_IMAGES = 20
-    IMAGE_RESOLUTION = 5 * 5
+    SAMPLE_SIZE = 5
+    IMAGE_RESOLUTION = SAMPLE_SIZE * SAMPLE_SIZE
 
     #load images (index = image type)
     trainingImages = [imageToArray("images/"+str(i).rjust(2, '0')+".png") for i in range(NUMBER_OF_IMAGES)]
@@ -63,7 +72,7 @@ if __name__ == "__main__":
     # network = ThreeLayerNeuralNetwork(IMAGE_RESOLUTION, 25, 25, NUMBER_OF_IMAGES)
     network = TwoLayerNeuralNetwork(IMAGE_RESOLUTION, 25, NUMBER_OF_IMAGES)
 
-    #training
+    # TRAINING
 
     LEARN_SPEED = 0.2
     MOMENTUM = 0.8
@@ -73,7 +82,7 @@ if __name__ == "__main__":
     meanErrorInEpochs = []
     successCountInEpochs = []
 
-    for epoch in range(1000):
+    for epoch in range(300):
 
         #epoch
 
@@ -99,6 +108,7 @@ if __name__ == "__main__":
 
     verifyNetwork()
 
+    # plot training results
     fig, host = plt.subplots()
     par1 = host.twinx()
 
@@ -116,6 +126,29 @@ if __name__ == "__main__":
     host.grid()
 
     plt.show()
+
+    # STICKMAN PROCESSING
+
+    print("\nProcessing stickman\n-------------------------")
+
+    stickmanData = imageToMatrix("images/test/stickman.png")
+
+    results = np.zeros((stickmanData.shape[0] - SAMPLE_SIZE, stickmanData.shape[1] - SAMPLE_SIZE))
+
+    for y in range(stickmanData.shape[0] - SAMPLE_SIZE):
+        for x in range(stickmanData.shape[1] - SAMPLE_SIZE):
+
+            sampleSubmatrix = stickmanData[y:y + SAMPLE_SIZE, x:x + SAMPLE_SIZE]
+            sampleList = np.asarray(sampleSubmatrix).reshape(-1).tolist()
+
+            recall = network.recall(sampleList)
+            detectedImageType = recall.index(max(recall))
+            results[y,x] = detectedImageType
+
+            sys.stdout.write("\rProcessing Y: %d\t X: %d\t => Detected:\t%d" % (y, x, detectedImageType))
+            sys.stdout.flush()
+
+
 
     pass;
 
