@@ -287,11 +287,12 @@ def task_draw():
 
                 if result[0] != 0:
                     temp_result_img = Image.open("./imgs/" + str(result[0]) + ".png")
-                    result_image.paste(make_transparent(temp_result_img), (column, row))
-    result_image.save('./imgs/out.png')
+                    result_image.paste(make_transparent(temp_result_img), (column, row),
+                                       make_transparent(temp_result_img))
+    result_image.save('./imgs/out2.png')
 
     print("Opening Image")
-    imgshow = Image.open('./imgs/out.png')
+    imgshow = Image.open('./imgs/out2.png')
     imgshow.show()
 
 
